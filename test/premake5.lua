@@ -11,9 +11,9 @@ project "MyProject"
 	kind "ConsoleApp"
 	component.new "vector3"
 	component.add {
-		{"x","float"},
-		{"y","float"},
-		{"z","float"}
+		x="float",
+		y="float",
+		z={"float", "0"}
 	}
 	files {"source/**"}
 	component.generate()

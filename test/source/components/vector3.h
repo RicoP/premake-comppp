@@ -8,6 +8,7 @@ struct vector3 {
 
   void setDefaultValues() {
     std::memset(this, 0, sizeof(vector3));
+    z = 0;
   }
 };
 
@@ -36,7 +37,7 @@ struct Deserializer<vector3, DESERIALIZER> {
     do {
       if (!r.newLine()) return true;
       r.readHead();
-      switch (field_hash(r.name, r.type)) {
+      switch (field_hash(r.name, r.valtype)) {
         case field_hash("x", "float"): r.read(o.x); break;
         case field_hash("y", "float"): r.read(o.y); break;
         case field_hash("z", "float"): r.read(o.z); break;
