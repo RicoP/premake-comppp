@@ -1,1 +1,1 @@
-# premake-comppp
+# premake-comppp (comp++)
