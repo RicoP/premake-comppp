@@ -1,5 +1,5 @@
 #pragma once
-#include <game/serializer.h>
+#include "serializer.h"
 
 struct vector3 {
   float x;
@@ -10,41 +10,54 @@ struct vector3 {
     std::memset(this, 0, sizeof(vector3));
     z = 0;
   }
-};
 
-/////////////////////////////////////////////////////////////////////
-//serializer                                                       //
-/////////////////////////////////////////////////////////////////////
-template <class SERIALIZER>
-struct Serializer<vector3, SERIALIZER> {
-  static bool serialize(vector3 &o, SERIALIZER &w) {
-    w.write("x", "float", o.x);
-    w.write("y", "float", o.y);
-    w.write("z", "float", o.z);
-    w.end();
-    return true;
+  bool equals(const vector3 & rhs) {
+    return 
+      x == rhs.x &&
+      y == rhs.y &&
+      z == rhs.z;
   }
 };
 
-/////////////////////////////////////////////////////////////////////
-//deserializer                                                     //
-/////////////////////////////////////////////////////////////////////
-template <class DESERIALIZER>
-struct Deserializer<vector3, DESERIALIZER> {
-  static bool deserialize(vector3 &o, DESERIALIZER &r) {
-    o.setDefaultValues();
-    bool ok = false;
-    do {
-      if (!r.newLine()) return true;
-      r.readHead();
-      switch (field_hash(r.name, r.valtype)) {
-        case field_hash("x", "float"): r.read(o.x); break;
-        case field_hash("y", "float"): r.read(o.y); break;
-        case field_hash("z", "float"): r.read(o.z); break;
-        default: r.skip();
-      }
-      ok = r.ok();
-    } while (ok && !r.finished());
-    return ok;
+///////////////////////////////////////////////////////////////////
+//serializer                                                     //
+///////////////////////////////////////////////////////////////////
+inline void serialize(vector3 &o, ISerializer &s) {
+  s.hint_type("vector3");  
+  s.set_field("x");
+  serialize(o.x, s);
+  s.set_field("y");
+  serialize(o.y, s);
+  s.set_field("z");
+  serialize(o.z, s);
+  w.end();
+}
+
+///////////////////////////////////////////////////////////////////
+//deserializer                                                   //
+///////////////////////////////////////////////////////////////////
+inline void deserialize(vector3 &o, IDeserializer &r) {
+  o.setDefaultValues();
+  while (r.next()) {
+    switch (r.name_hash()) {
+      case ros::hash("x"): deserialize(o.x, s); break;
+      case ros::hash("y"): deserialize(o.y, s); break;
+      case ros::hash("z"): deserialize(o.z, s); break;
+      default: r.skip();
+    }
   }
-};
+}
+
+///////////////////////////////////////////////////////////////////
+//hashing                                                        //
+///////////////////////////////////////////////////////////////////
+namespace ros {
+  inline ros::hash_value hash(vector3 &o) {
+    ros::hash_value h = ros::hash(o.x);
+    h = ros::xor64(h);    
+    h ^= ros::hash(o.y);
+    h = ros::xor64(h);
+    h ^= ros::hash(o.z);
+    return h;
+  }
+}
