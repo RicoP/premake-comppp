@@ -22,15 +22,17 @@ function dump(o)
    end
 end
 
-
-
 --https://help.interfaceware.com/code/details/stringutil-lua
 function trimRight(s)
    return s:match('^(.-)%s*$')
 end
 
+function write_no_new_line(s)
+  file:write(trimRight(s))
+end
+
 function write(s)
-  print(s)
+  --print(s)
   file:write(trimRight(s), "\n")
 end
 
@@ -98,7 +100,7 @@ function execute()
     end
 
     table.sort(fields, function (left, right)
-        --TODO: sort not only bu name but first by type size
+        --TODO: sort not only by name but first by type size
         return left[1] < right[1]
     end)
 
@@ -106,7 +108,7 @@ function execute()
 
     -- STRUCT
     write("#pragma once")
-    write("#include <game/serializer.h>")
+    write('#include "serializer.h"')
     write("")
     write("struct " .. struct .. " {")
     for i=1,#fields do
@@ -122,6 +124,8 @@ function execute()
         write('  ' .. valtype .. ' ' .. name .. ';')
       end
     end
+
+    --default values
     write("")
     write("  void setDefaultValues() {")
     write("    std::memset(this, 0, sizeof(" .. struct .. "));")
@@ -143,62 +147,97 @@ function execute()
       end
     end
     write("  }")
+
+    --equals
+    write("")
+    write('  bool equals(const '.. struct ..' & rhs) {      ')
+    write('    return                                         ')
+    write_no_new_line('      ')
+    for i=1,#fields do
+      local name = fields[i][1]
+
+      if i ~= 1 then
+        write(" &&")
+      end
+      write_no_new_line("      " .. name .. " == rhs." .. name)
+    end
+    write(";")
+    write("  }")
+
+    --struct end
     write('};')
     write('')
     --SERIALIZER
-    write('/////////////////////////////////////////////////////////////////////')
-    write('//serializer                                                       //')
-    write('/////////////////////////////////////////////////////////////////////')
-    write('template <class SERIALIZER>                                          ')
-    write('struct Serializer<'.. struct ..', SERIALIZER> {                      ')
-    write('  static bool serialize('.. struct ..' &o, SERIALIZER &w) {          ')
-
+    write('///////////////////////////////////////////////////////////////////')
+    write('//serializer                                                     //')
+    write('///////////////////////////////////////////////////////////////////')
+    write('inline void serialize('.. struct ..' &o, ISerializer &s) {         ')
+    write('  s.hint_type("'.. struct ..'");                                   ')
     for i=1,#fields do
       local name = fields[i][1]
       local valtype = fields[i][2]
       local isComponent = components[valtype]
       if isComponent then
-        write('    w.write_component("'.. name ..'", "'.. ctype(valtype) ..'", o.'.. name ..');')
+        --TODO: Do we need that?
+        --write('  w.write_component("'.. name ..'", "'.. ctype(valtype) ..'", o.'.. name ..');')
+        write('  s.set_field_name("'.. name ..'");                            ')
+        write('  serialize(o.'.. name ..', s);                                ')
       else
-        write('    w.write("'.. name ..'", "'.. ctype(valtype) ..'", o.'.. name ..');')
+        write('  s.set_field_name("'.. name ..'");                            ')
+        write('  serialize(o.'.. name ..', s);                                ')
       end
     end
+    write('  w.end();                                                         ')
+    write('}                                                                  ')
 
-    write('    w.end();                                                         ')
-    write('    return true;                                                     ')
-    write('  }                                                                  ')
-    write('};                                                                   ')
     --DESERIALIZER
     write('')
-    write('/////////////////////////////////////////////////////////////////////')
-    write('//deserializer                                                     //')
-    write('/////////////////////////////////////////////////////////////////////')
-    write('template <class DESERIALIZER>                                        ')
-    write('struct Deserializer<'.. struct ..', DESERIALIZER> {                  ')
-    write('  static bool deserialize('.. struct ..' &o, DESERIALIZER &r) {      ')
-    write('    o.setDefaultValues();                                            ')
-    write('    bool ok = false;                                                 ')
-    write('    do {                                                             ')
-    write('      if (!r.newLine()) return true;                                 ')
-    write('      r.readHead();                                                  ')
-    write('      switch (field_hash(r.name, r.valtype)) {                          ')
+    write('///////////////////////////////////////////////////////////////////')
+    write('//deserializer                                                   //')
+    write('///////////////////////////////////////////////////////////////////')
+    write('inline bool deserialize('.. struct ..' &o, IDeserializer &r) {     ')
+    write('  o.setDefaultValues();                                            ')
+    write('  while (s.next()) {                                               ')
+    write('    switch (s.name_hash()) {                                       ')
     for i=1,#fields do
       local name = fields[i][1]
       local valtype = fields[i][2]
       local isComponent = components[valtype]
       if isComponent then
-        write('        case field_hash("' .. name ..'", "' .. ctype(valtype) ..'"): if(!r.finished()) { r.read_component(o.' .. name ..'); } break; ')
+        --TODO: does this need an extra step?
+        --write('      case field_hash("' .. name ..'", "' .. ctype(valtype) ..'"): if(!r.finished()) { r.read_component(o.' .. name ..'); } break; ')
       else
-        write('        case field_hash("' .. name ..'", "' .. ctype(valtype) ..'"): r.read(o.' .. name ..'); break; ')
+        write('      case ros::hash("' .. name ..'"): deserialize(o.' .. name ..', s); break; ')
       end
     end
-    write('        default: r.skip();                                           ')
-    write('      }                                                              ')
-    write('      ok = r.ok();                                                   ')
-    write('    } while (ok && !r.finished());                                   ')
-    write('    return ok;                                                       ')
-    write('  }                                                                  ')
-    write('};                                                                   ')
+    write('      default: r.skip();                                           ')
+    write('    }                                                              ')
+    write('  }                                                                ')
+    write('}                                                                  ')
+
+    --DESERIALIZER
+    write('')
+    write('///////////////////////////////////////////////////////////////////')
+    write('//hashing                                                        //')
+    write('///////////////////////////////////////////////////////////////////')
+    write('namespace ros {                                                    ')
+    write('  inline ros::hash_value hash('.. struct ..' &o) {     ')
+    write_no_new_line('    ros::hash_value h =                                ')
+    for i=1,#fields do
+      local name = fields[i][1]
+      if i == 1 then
+        write(' ros::hash(o.'.. name ..');                                    ')
+      else
+        write('    h = ros::xor64(h);                                         ')
+        write('    h ^= ros::hash(o.' .. name ..');                           ')
+      end
+    end
+    if #fields == 0 then
+        write(' 0;                                                            ')
+    end
+    write('    return h;                                                      ')
+    write('  }                                                                ')
+    write('}                                                                  ')
 
     file:close()
   end

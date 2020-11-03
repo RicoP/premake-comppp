@@ -12,7 +12,7 @@ struct vector3 {
   }
 
   bool equals(const vector3 & rhs) {
-    return 
+    return
       x == rhs.x &&
       y == rhs.y &&
       z == rhs.z;
@@ -23,12 +23,12 @@ struct vector3 {
 //serializer                                                     //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(vector3 &o, ISerializer &s) {
-  s.hint_type("vector3");  
-  s.set_field("x");
+  s.hint_type("vector3");
+  s.set_field_name("x");
   serialize(o.x, s);
-  s.set_field("y");
+  s.set_field_name("y");
   serialize(o.y, s);
-  s.set_field("z");
+  s.set_field_name("z");
   serialize(o.z, s);
   w.end();
 }
@@ -36,10 +36,10 @@ inline void serialize(vector3 &o, ISerializer &s) {
 ///////////////////////////////////////////////////////////////////
 //deserializer                                                   //
 ///////////////////////////////////////////////////////////////////
-inline void deserialize(vector3 &o, IDeserializer &r) {
+inline bool deserialize(vector3 &o, IDeserializer &r) {
   o.setDefaultValues();
-  while (r.next()) {
-    switch (r.name_hash()) {
+  while (s.next()) {
+    switch (s.name_hash()) {
       case ros::hash("x"): deserialize(o.x, s); break;
       case ros::hash("y"): deserialize(o.y, s); break;
       case ros::hash("z"): deserialize(o.z, s); break;
@@ -54,7 +54,7 @@ inline void deserialize(vector3 &o, IDeserializer &r) {
 namespace ros {
   inline ros::hash_value hash(vector3 &o) {
     ros::hash_value h = ros::hash(o.x);
-    h = ros::xor64(h);    
+    h = ros::xor64(h);
     h ^= ros::hash(o.y);
     h = ros::xor64(h);
     h ^= ros::hash(o.z);
