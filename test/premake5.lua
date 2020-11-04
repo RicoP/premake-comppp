@@ -15,5 +15,14 @@ project "MyProject"
 		y="float",
 		z={"float", "0"}
 	}
+	component.new "Player"
+	component.add {
+		position="vector3",
+		state="int",
+	}
+	component.new "World"
+	component.add {
+		position="Player[4]"
+	}
 	files {"source/**"}
 	component.generate()

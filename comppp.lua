@@ -119,7 +119,7 @@ function execute()
       --print(valtype)
 
       if vector(valtype) then
-        write('  CArray<' .. size(valtype) .. ', ' .. vvaltype(valtype) .. '> ' .. name .. ';')
+        write('  ros::array<' .. size(valtype) .. ', ' .. vtype(valtype) .. '> ' .. name .. ';')
       else
         write('  ' .. valtype .. ' ' .. name .. ';')
       end
@@ -150,9 +150,9 @@ function execute()
 
     --equals
     write("")
-    write('  bool equals(const '.. struct ..' & rhs) {      ')
-    write('    return                                         ')
-    write_no_new_line('      ')
+    write('  bool equals(const '.. struct ..' & rhs) const {                  ')
+    write('    return                                                         ')
+    write_no_new_line('                                                       ')
     for i=1,#fields do
       local name = fields[i][1]
 
@@ -167,6 +167,12 @@ function execute()
     --struct end
     write('};')
     write('')
+
+    write('bool operator==(const '.. struct ..' &lhs, const '.. struct ..' &rhs) { ')
+    write('  return lhs.equals(rhs);                                               ')
+    write('}                                                                       ')
+    write('')
+
     --SERIALIZER
     write('///////////////////////////////////////////////////////////////////')
     write('//serializer                                                     //')
@@ -187,7 +193,7 @@ function execute()
         write('  serialize(o.'.. name ..', s);                                ')
       end
     end
-    write('  w.end();                                                         ')
+    write('  s.end();                                                         ')
     write('}                                                                  ')
 
     --DESERIALIZER
@@ -195,7 +201,7 @@ function execute()
     write('///////////////////////////////////////////////////////////////////')
     write('//deserializer                                                   //')
     write('///////////////////////////////////////////////////////////////////')
-    write('inline bool deserialize('.. struct ..' &o, IDeserializer &r) {     ')
+    write('inline void deserialize('.. struct ..' &o, IDeserializer &s) {     ')
     write('  o.setDefaultValues();                                            ')
     write('  while (s.next()) {                                               ')
     write('    switch (s.name_hash()) {                                       ')
@@ -210,7 +216,7 @@ function execute()
         write('      case ros::hash("' .. name ..'"): deserialize(o.' .. name ..', s); break; ')
       end
     end
-    write('      default: r.skip();                                           ')
+    write('      default: s.skip();                                           ')
     write('    }                                                              ')
     write('  }                                                                ')
     write('}                                                                  ')

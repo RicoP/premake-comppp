@@ -1,52 +1,42 @@
 #pragma once
 #include "serializer.h"
 
-struct vector3 {
-  float x;
-  float y;
-  float z;
+struct World {
+  ros::array<4, Player> position;
 
   void setDefaultValues() {
-    std::memset(this, 0, sizeof(vector3));
-    z = 0;
+    std::memset(this, 0, sizeof(World));
+    position.size = 0;
   }
 
-  bool equals(const vector3 & rhs) const {
+  bool equals(const World & rhs) const {
     return
-      x == rhs.x &&
-      y == rhs.y &&
-      z == rhs.z;
+      position == rhs.position;
   }
 };
 
-bool operator==(const vector3 &lhs, const vector3 &rhs) {
+bool operator==(const World &lhs, const World &rhs) {
   return lhs.equals(rhs);
 }
 
 ///////////////////////////////////////////////////////////////////
 //serializer                                                     //
 ///////////////////////////////////////////////////////////////////
-inline void serialize(vector3 &o, ISerializer &s) {
-  s.hint_type("vector3");
-  s.set_field_name("x");
-  serialize(o.x, s);
-  s.set_field_name("y");
-  serialize(o.y, s);
-  s.set_field_name("z");
-  serialize(o.z, s);
+inline void serialize(World &o, ISerializer &s) {
+  s.hint_type("World");
+  s.set_field_name("position");
+  serialize(o.position, s);
   s.end();
 }
 
 ///////////////////////////////////////////////////////////////////
 //deserializer                                                   //
 ///////////////////////////////////////////////////////////////////
-inline void deserialize(vector3 &o, IDeserializer &s) {
+inline void deserialize(World &o, IDeserializer &s) {
   o.setDefaultValues();
   while (s.next()) {
     switch (s.name_hash()) {
-      case ros::hash("x"): deserialize(o.x, s); break;
-      case ros::hash("y"): deserialize(o.y, s); break;
-      case ros::hash("z"): deserialize(o.z, s); break;
+      case ros::hash("position"): deserialize(o.position, s); break;
       default: s.skip();
     }
   }
@@ -56,12 +46,8 @@ inline void deserialize(vector3 &o, IDeserializer &s) {
 //hashing                                                        //
 ///////////////////////////////////////////////////////////////////
 namespace ros {
-  inline ros::hash_value hash(vector3 &o) {
-    ros::hash_value h = ros::hash(o.x);
-    h = ros::xor64(h);
-    h ^= ros::hash(o.y);
-    h = ros::xor64(h);
-    h ^= ros::hash(o.z);
+  inline ros::hash_value hash(World &o) {
+    ros::hash_value h = ros::hash(o.position);
     return h;
   }
 }

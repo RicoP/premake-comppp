@@ -1,52 +1,46 @@
 #pragma once
 #include "serializer.h"
 
-struct vector3 {
-  float x;
-  float y;
-  float z;
+struct Player {
+  vector3 position;
+  int state;
 
   void setDefaultValues() {
-    std::memset(this, 0, sizeof(vector3));
-    z = 0;
+    std::memset(this, 0, sizeof(Player));
+    position.setDefaultValues();
   }
 
-  bool equals(const vector3 & rhs) const {
+  bool equals(const Player & rhs) const {
     return
-      x == rhs.x &&
-      y == rhs.y &&
-      z == rhs.z;
+      position == rhs.position &&
+      state == rhs.state;
   }
 };
 
-bool operator==(const vector3 &lhs, const vector3 &rhs) {
+bool operator==(const Player &lhs, const Player &rhs) {
   return lhs.equals(rhs);
 }
 
 ///////////////////////////////////////////////////////////////////
 //serializer                                                     //
 ///////////////////////////////////////////////////////////////////
-inline void serialize(vector3 &o, ISerializer &s) {
-  s.hint_type("vector3");
-  s.set_field_name("x");
-  serialize(o.x, s);
-  s.set_field_name("y");
-  serialize(o.y, s);
-  s.set_field_name("z");
-  serialize(o.z, s);
+inline void serialize(Player &o, ISerializer &s) {
+  s.hint_type("Player");
+  s.set_field_name("position");
+  serialize(o.position, s);
+  s.set_field_name("state");
+  serialize(o.state, s);
   s.end();
 }
 
 ///////////////////////////////////////////////////////////////////
 //deserializer                                                   //
 ///////////////////////////////////////////////////////////////////
-inline void deserialize(vector3 &o, IDeserializer &s) {
+inline void deserialize(Player &o, IDeserializer &s) {
   o.setDefaultValues();
   while (s.next()) {
     switch (s.name_hash()) {
-      case ros::hash("x"): deserialize(o.x, s); break;
-      case ros::hash("y"): deserialize(o.y, s); break;
-      case ros::hash("z"): deserialize(o.z, s); break;
+      case ros::hash("state"): deserialize(o.state, s); break;
       default: s.skip();
     }
   }
@@ -56,12 +50,10 @@ inline void deserialize(vector3 &o, IDeserializer &s) {
 //hashing                                                        //
 ///////////////////////////////////////////////////////////////////
 namespace ros {
-  inline ros::hash_value hash(vector3 &o) {
-    ros::hash_value h = ros::hash(o.x);
+  inline ros::hash_value hash(Player &o) {
+    ros::hash_value h = ros::hash(o.position);
     h = ros::xor64(h);
-    h ^= ros::hash(o.y);
-    h = ros::xor64(h);
-    h ^= ros::hash(o.z);
+    h ^= ros::hash(o.state);
     return h;
   }
 }
