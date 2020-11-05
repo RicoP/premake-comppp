@@ -74,15 +74,23 @@ class IDeserializer {
 
 class ISerializer {
  public:
-  virtual void hint_type(const char *) = 0;
   virtual void set_field_name(const char *) = 0;
+  
+  virtual void hint_type(const char *) = 0;
   virtual void end() = 0;
+  
+  virtual void begin_array() = 0;
+  virtual void end_array() = 0;
+
+  virtual void do_float(float) = 0;
+  virtual void do_int(int) = 0;
 };
 
 namespace ros {
 template <size_t N, class T>
 struct array {
   size_t size;
+  T values[N];
 
   bool operator==(const array &rhs) const { return true; }
 };
@@ -92,11 +100,19 @@ inline hash_value hash(const array<N,T> & v);
 }
 
 template <size_t N, class T>
-inline void serialize(ros::array<N, T> &o, ISerializer &s);
+inline void serialize(ros::array<N, T> &o, ISerializer &s) {
+    s.begin_array();
+    for(size_t i = 0; i != o.size; ++i) {
+        serialize(o.values[i], s);
+    }
+    s.end_array();
+}
 
 template <size_t N, class T>
 inline void deserialize(ros::array<N, T> &o, IDeserializer &s);
 
+inline void serialize(int i, ISerializer & s) { s.do_int(i); }
+inline void deserialize(int i, IDeserializer &d);// { d.do_int(i); }
 
-inline void serialize(int, ISerializer &);
-inline void deserialize(int, IDeserializer &);
+inline void serialize(float f, ISerializer & s) { s.do_float(f); }
+inline void deserialize(float, IDeserializer &d);// { d.do_float(d); }

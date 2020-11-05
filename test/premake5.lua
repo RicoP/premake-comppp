@@ -22,7 +22,8 @@ project "MyProject"
 	}
 	component.new "World"
 	component.add {
-		position="Player[4]"
+		player="Player[4]",
+		scores="float[4]"
 	}
 	files {"source/**"}
 	component.generate()

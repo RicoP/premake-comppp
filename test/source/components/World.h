@@ -2,16 +2,19 @@
 #include "serializer.h"
 
 struct World {
-  ros::array<4, Player> position;
+  ros::array<4, Player> player;
+  ros::array<4, float> scores;
 
   void setDefaultValues() {
     std::memset(this, 0, sizeof(World));
-    position.size = 0;
+    player.size = 0;
+    scores.size = 0;
   }
 
   bool equals(const World & rhs) const {
     return
-      position == rhs.position;
+      player == rhs.player &&
+      scores == rhs.scores;
   }
 };
 
@@ -24,8 +27,10 @@ bool operator==(const World &lhs, const World &rhs) {
 ///////////////////////////////////////////////////////////////////
 inline void serialize(World &o, ISerializer &s) {
   s.hint_type("World");
-  s.set_field_name("position");
-  serialize(o.position, s);
+  s.set_field_name("player");
+  serialize(o.player, s);
+  s.set_field_name("scores");
+  serialize(o.scores, s);
   s.end();
 }
 
@@ -36,7 +41,8 @@ inline void deserialize(World &o, IDeserializer &s) {
   o.setDefaultValues();
   while (s.next()) {
     switch (s.name_hash()) {
-      case ros::hash("position"): deserialize(o.position, s); break;
+      case ros::hash("player"): deserialize(o.player, s); break;
+      case ros::hash("scores"): deserialize(o.scores, s); break;
       default: s.skip();
     }
   }
@@ -47,7 +53,9 @@ inline void deserialize(World &o, IDeserializer &s) {
 ///////////////////////////////////////////////////////////////////
 namespace ros {
   inline ros::hash_value hash(World &o) {
-    ros::hash_value h = ros::hash(o.position);
+    ros::hash_value h = ros::hash(o.player);
+    h = ros::xor64(h);
+    h ^= ros::hash(o.scores);
     return h;
   }
 }
