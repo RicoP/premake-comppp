@@ -207,14 +207,13 @@ function execute()
     write('///////////////////////////////////////////////////////////////////')
     write('inline void deserialize('.. struct ..' &o, IDeserializer &s) {     ')
     write('  o.setDefaultValues();                                            ')
-    write('  s.begin_document();                                              ')
-    write('  while (s.next()) {                                               ')
-    write('    switch (s.name_hash()) {                                       ')
+    write('  while (s.next_key()) {                                               ')
+    write('    switch (s.hash_key()) {                                       ')
     for i=1,#fields do
       local name = fields[i][1]
       write('      case ros::hash("' .. name ..'"): deserialize(o.' .. name ..', s); break; ')
     end
-    write('      default: s.skip();                                           ')
+    write('      default: s.skip_key();                                           ')
     write('    }                                                              ')
     write('  }                                                                ')
     write('}                                                                  ')

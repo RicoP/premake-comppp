@@ -46,6 +46,7 @@ struct JsonDeserializer : public IDeserializer {
     switch (c) {
       case ' ': case '\t': case '\r': case '\n':
       case ',': case ':': // we consider ',' and ':' a whitespace
+      case '{': case '[':
         return true;
       default:
         return false;
@@ -76,11 +77,9 @@ struct JsonDeserializer : public IDeserializer {
       ++_p;
   }
 
-  virtual ros::hash_value name_hash() override { return _name_hash; }
+  virtual ros::hash_value hash_key() override { return _name_hash; }
 
-  virtual void begin_document() override { expect('{'); }
-
-  virtual bool next() override {
+  virtual bool next_key() override {
     char c = current();
     if (c == '}') {
       expect('}');  // document end
@@ -97,9 +96,7 @@ struct JsonDeserializer : public IDeserializer {
     return false;
   }
 
-  virtual void skip() override { /*TODO*/ }
-
-  virtual void begin_array() override { expect('['); }
+  virtual void skip_key() override { /*TODO*/ }
 
   virtual bool in_array() override {
     char c = current();

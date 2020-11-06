@@ -42,12 +42,11 @@ inline void serialize(Player &o, ISerializer &s) {
 ///////////////////////////////////////////////////////////////////
 inline void deserialize(Player &o, IDeserializer &s) {
   o.setDefaultValues();
-  s.begin_document();
-  while (s.next()) {
-    switch (s.name_hash()) {
+  while (s.next_key()) {
+    switch (s.hash_key()) {
       case ros::hash("position"): deserialize(o.position, s); break;
       case ros::hash("state"): deserialize(o.state, s); break;
-      default: s.skip();
+      default: s.skip_key();
     }
   }
 }

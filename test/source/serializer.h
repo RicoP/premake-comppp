@@ -75,12 +75,10 @@ inline hash_value hash(wchar_t v) { return internal::hash_simple(v); }
 class IDeserializer {
  public:
 
-  virtual void begin_document() = 0;
-  virtual bool next() = 0;
-  virtual void skip() = 0;
-  virtual ros::hash_value name_hash() = 0;
+  virtual bool next_key() = 0;
+  virtual void skip_key() = 0;
+  virtual ros::hash_value hash_key() = 0;
 
-  virtual void begin_array() = 0;
   virtual bool in_array() = 0;
 
   virtual void do_float(float &) = 0;
@@ -137,7 +135,6 @@ inline void serialize(ros::array<N, T> &o, ISerializer &s) {
 
 template <size_t N, class T>
 inline void deserialize(ros::array<N, T> &o, IDeserializer &d) {
-  d.begin_array();
   o.size = 0;
   while (d.in_array()) {
     deserialize(o.values[o.size], d);
