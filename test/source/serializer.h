@@ -2,7 +2,6 @@
 
 #include <array>
 
-
 namespace ros {
 
 typedef unsigned long long hash_value;
@@ -64,21 +63,26 @@ inline hash_value hash(float v) { return internal::hash_simple(v); }
 inline hash_value hash(wchar_t v) { return internal::hash_simple(v); }
 }  // namespace ros
 
-
 class IDeserializer {
  public:
   virtual bool next() = 0;
   virtual void skip() = 0;
   virtual ros::hash_value name_hash() = 0;
+
+  virtual void begin_array() = 0;
+  virtual bool in_array() = 0;
+
+  virtual void do_float(float &) = 0;
+  virtual void do_int(int &) = 0;
 };
 
 class ISerializer {
  public:
   virtual void set_field_name(const char *) = 0;
-  
+
   virtual void hint_type(const char *) = 0;
   virtual void end() = 0;
-  
+
   virtual void begin_array() = 0;
   virtual void end_array() = 0;
 
@@ -92,27 +96,40 @@ struct array {
   size_t size;
   T values[N];
 
-  bool operator==(const array &rhs) const { return true; }
+  bool operator==(const array &rhs) const {
+    if (size != rhs.size) return false;
+    for (size_t i = 0; i != size; ++i) {
+      if (!(values[i] == rhs.values[i])) return false;
+    }
+    return true;
+  }
 };
 
 template <size_t N, class T>
-inline hash_value hash(const array<N,T> & v);
-}
+inline hash_value hash(const array<N, T> &v);
+}  // namespace ros
+
+inline void serialize(int &i, ISerializer &s) { s.do_int(i); }
+inline void deserialize(int &i, IDeserializer &d) { d.do_int(i); }
+
+inline void serialize(float &f, ISerializer &s) { s.do_float(f); }
+inline void deserialize(float &f, IDeserializer &d) { d.do_float(f); }
 
 template <size_t N, class T>
 inline void serialize(ros::array<N, T> &o, ISerializer &s) {
-    s.begin_array();
-    for(size_t i = 0; i != o.size; ++i) {
-        serialize(o.values[i], s);
-    }
-    s.end_array();
+  s.begin_array();
+  for (size_t i = 0; i != o.size; ++i) {
+    serialize(o.values[i], s);
+  }
+  s.end_array();
 }
 
 template <size_t N, class T>
-inline void deserialize(ros::array<N, T> &o, IDeserializer &s);
-
-inline void serialize(int i, ISerializer & s) { s.do_int(i); }
-inline void deserialize(int i, IDeserializer &d);// { d.do_int(i); }
-
-inline void serialize(float f, ISerializer & s) { s.do_float(f); }
-inline void deserialize(float, IDeserializer &d);// { d.do_float(d); }
+inline void deserialize(ros::array<N, T> &o, IDeserializer &d) {
+  d.begin_array();
+  o.size = 0;
+  while (d.in_array()) {
+    deserialize(o.values[o.size], d);
+    ++o.size;
+  }
+}
