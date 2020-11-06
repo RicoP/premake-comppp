@@ -42,6 +42,7 @@ inline void serialize(vector3 &o, ISerializer &s) {
 ///////////////////////////////////////////////////////////////////
 inline void deserialize(vector3 &o, IDeserializer &s) {
   o.setDefaultValues();
+  s.begin_document();
   while (s.next()) {
     switch (s.name_hash()) {
       case ros::hash("x"): deserialize(o.x, s); break;

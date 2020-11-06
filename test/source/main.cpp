@@ -19,7 +19,9 @@ struct JsonSerializer : public ISerializer {
   void indent() { ++indent_depth; }
   void unindent() { queued[indent_depth--] = 0; }
 
-  void print_indent() { std::cout << '\n' << (whitespace  + 128 - indent_depth*2); }
+  void print_indent() {
+    std::cout << '\n' << (whitespace + 128 - indent_depth * 2);
+  }
 
   virtual void set_field_name(const char* name) override { queue_char(',');             print_indent(); std::cout << "\"" << name << "\" : "; queued[indent_depth] = 0; _name = name; }
   virtual void hint_type(const char* type)      override { queue_char(',');   indent();                 std::cout << "{"; }
@@ -31,8 +33,9 @@ struct JsonSerializer : public ISerializer {
 };
 
 struct JsonDeserializer : public IDeserializer {
-  char* _json;
-  char* _p;
+  char* _json = 0;
+  char* _p = 0;
+  ros::hash_value _name_hash = 0;
 
   JsonDeserializer(char* json) {
     _json = json;
@@ -45,6 +48,8 @@ struct JsonDeserializer : public IDeserializer {
       case '\t':
       case '\r':
       case '\n':
+      case ',':
+      case ':':  // we consider ',' and ':' a whitespace
         return true;
       default:
         return false;
@@ -54,9 +59,17 @@ struct JsonDeserializer : public IDeserializer {
   void trim() {
     while (is_whitespace(*_p)) ++_p;
   }
+
   char current() {
     trim();
     return *_p;
+  }
+
+  char* seek(char c) {
+    char* p = _p;
+    while (*p != c && *p != 0) ++p;
+    if (*p == 0) std::cerr << "Expected " << c << " but found EOF.";
+    return p;
   }
 
   void expect(char c) {
@@ -67,23 +80,45 @@ struct JsonDeserializer : public IDeserializer {
       ++_p;
   }
 
-  virtual bool next() override { return true; }
+  virtual ros::hash_value name_hash() override { return _name_hash; }
+
+  virtual void begin_document() override { expect('{'); }
+
+  virtual bool next() override {
+    char c = current();
+    if (c == '}') {
+      expect('}');  // document end
+      return false;
+    }
+
+    expect('\"');
+    char* end = seek('\"');
+    _name_hash = ros::hash_fnv(_p, end);
+    if (*end != 0) {
+      _p = end + 1;
+      return true;
+    }
+    return false;
+  }
+
   virtual void skip() override {}
-  virtual ros::hash_value name_hash() override { return 0; }
 
   virtual void begin_array() override { expect('['); }
 
   virtual bool in_array() override {
     char c = current();
     if (c == ']') return false;
-    if (c == ',') ++_p;
-    // std::cerr << "Error: either , or ] but got " << c << ".\n";
-    // return false;
     return true;
   }
 
-  virtual void do_int(int& i) override { i = strtol(_p, &_p, 10); }
-  virtual void do_float(float& f) override { f = (float)strtod(_p, &_p); }
+  virtual void do_int(int& i) override {
+    trim();
+    i = strtol(_p, &_p, 10);
+  }
+  virtual void do_float(float& f) override {
+    trim();
+    f = (float)strtod(_p, &_p);
+  }
 };
 
 int main() {
@@ -145,7 +180,23 @@ int main() {
   TEST(R"([1 ,2 ,3 ,4 ])", vec);
   TEST(R"([ 1 , 2 ,   3 ,   4 ])", vec);
 
-  // TEST(R"({"x" : 1, "y" : 2, "z" : 3})", v);
+  ros::array<4, float> fvec;
+  fvec.size = 4;
+  fvec.values[0] = 1;
+  fvec.values[1] = 2;
+  fvec.values[2] = 3;
+  fvec.values[3] = 4;
+  TEST(R"([ 1 , 2 ,   3.0 ,   4 ])", fvec);
+  TEST(R"([ 1 , 2 ,   3 ,   4 ])", fvec);
+  TEST(R"([ 1 , 2 ,   3.0 ,   4 ])", fvec);
+  TEST(R"([ 1. , 2 ,   3.0 ,   4 ])", fvec);
+  fvec.values[0] = 1000;
+  fvec.values[1] = -2;
+  fvec.values[2] = 1500;
+  fvec.values[3] = 0;
+  TEST(R"([1e3, -2e0, 1.5e3, 0e10])", fvec);
+
+  TEST(R"({"x" : 1, "y" : 2, "z" : 3})", v);
 
   return 0;
 }

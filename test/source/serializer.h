@@ -6,6 +6,15 @@ namespace ros {
 
 typedef unsigned long long hash_value;
 
+constexpr hash_value hash_fnv(const char *pBuffer, const char *end) {
+  constexpr hash_value MagicPrime = 0x00000100000001b3;
+  hash_value Hash = 0xcbf29ce484222325ULL;
+
+  for (; pBuffer != end; pBuffer++) Hash = (Hash ^ *pBuffer) * MagicPrime;
+
+  return Hash;
+}
+
 constexpr hash_value fnFNV(const char *pBuffer) {
   constexpr hash_value MagicPrime = 0x00000100000001b3;
   hash_value Hash = 0xcbf29ce484222325ULL;
@@ -65,6 +74,8 @@ inline hash_value hash(wchar_t v) { return internal::hash_simple(v); }
 
 class IDeserializer {
  public:
+
+  virtual void begin_document() = 0;
   virtual bool next() = 0;
   virtual void skip() = 0;
   virtual ros::hash_value name_hash() = 0;
