@@ -4,6 +4,7 @@ m._VERSION = "0.1" -- dev version
 
 local state = {}
 state.objects = {}
+state.enums = {}
 
 local file = nil
 local components = nil
@@ -34,6 +35,16 @@ end
 function write(s)
   --print(s)
   file:write(trimRight(s), "\n")
+end
+
+function enum_type(type)
+  if(type:match("%|%")) then
+    return "flags"
+  end
+  if(type:match("%,%")) then
+    return "enum"
+  end
+  return "regular"
 end
 
 -- int -> int
@@ -79,7 +90,7 @@ end
 
 function execute()
   for struct, fieldsUnsorted in pairs(components) do
-    local path = state.dir .. "/" .. struct .. ".h"
+    local path = state.dir .. "/" .. struct:lower() .. ".h"
     print(struct .. " -> " .. path)
     file = io.open(path, "w")
 
@@ -207,13 +218,13 @@ function execute()
     write('///////////////////////////////////////////////////////////////////')
     write('inline void deserialize('.. struct ..' &o, IDeserializer &s) {     ')
     write('  o.setDefaultValues();                                            ')
-    write('  while (s.next_key()) {                                               ')
-    write('    switch (s.hash_key()) {                                       ')
+    write('  while (s.next_key()) {                                           ')
+    write('    switch (s.hash_key()) {                                        ')
     for i=1,#fields do
       local name = fields[i][1]
       write('      case ros::hash("' .. name ..'"): deserialize(o.' .. name ..', s); break; ')
     end
-    write('      default: s.skip_key();                                           ')
+    write('      default: s.skip_key();                                       ')
     write('    }                                                              ')
     write('  }                                                                ')
     write('}                                                                  ')
