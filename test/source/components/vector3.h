@@ -23,6 +23,10 @@ bool operator==(const vector3 &lhs, const vector3 &rhs) {
   return lhs.equals(rhs);
 }
 
+bool operator!=(const vector3 &lhs, const vector3 &rhs) {
+  return !lhs.equals(rhs);
+}
+
 ///////////////////////////////////////////////////////////////////
 //serializer                                                     //
 ///////////////////////////////////////////////////////////////////

@@ -22,6 +22,10 @@ bool operator==(const World &lhs, const World &rhs) {
   return lhs.equals(rhs);
 }
 
+bool operator!=(const World &lhs, const World &rhs) {
+  return !lhs.equals(rhs);
+}
+
 ///////////////////////////////////////////////////////////////////
 //serializer                                                     //
 ///////////////////////////////////////////////////////////////////

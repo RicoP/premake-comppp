@@ -172,6 +172,10 @@ function execute()
     write('  return lhs.equals(rhs);                                               ')
     write('}                                                                       ')
     write('')
+    write('bool operator!=(const '.. struct ..' &lhs, const '.. struct ..' &rhs) { ')
+    write('  return !lhs.equals(rhs);                                              ')
+    write('}                                                                       ')
+    write('')
 
     --SERIALIZER
     write('///////////////////////////////////////////////////////////////////')
@@ -203,18 +207,12 @@ function execute()
     write('///////////////////////////////////////////////////////////////////')
     write('inline void deserialize('.. struct ..' &o, IDeserializer &s) {     ')
     write('  o.setDefaultValues();                                            ')
+    write('  s.begin_document();                                              ')
     write('  while (s.next()) {                                               ')
     write('    switch (s.name_hash()) {                                       ')
     for i=1,#fields do
       local name = fields[i][1]
-      local valtype = fields[i][2]
-      local isComponent = components[valtype]
-      if isComponent then
-        --TODO: does this need an extra step?
-        --write('      case field_hash("' .. name ..'", "' .. ctype(valtype) ..'"): if(!r.finished()) { r.read_component(o.' .. name ..'); } break; ')
-      else
-        write('      case ros::hash("' .. name ..'"): deserialize(o.' .. name ..', s); break; ')
-      end
+      write('      case ros::hash("' .. name ..'"): deserialize(o.' .. name ..', s); break; ')
     end
     write('      default: s.skip();                                           ')
     write('    }                                                              ')

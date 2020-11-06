@@ -21,6 +21,10 @@ bool operator==(const Player &lhs, const Player &rhs) {
   return lhs.equals(rhs);
 }
 
+bool operator!=(const Player &lhs, const Player &rhs) {
+  return !lhs.equals(rhs);
+}
+
 ///////////////////////////////////////////////////////////////////
 //serializer                                                     //
 ///////////////////////////////////////////////////////////////////

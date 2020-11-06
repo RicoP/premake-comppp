@@ -97,7 +97,7 @@ struct JsonDeserializer : public IDeserializer {
     return false;
   }
 
-  virtual void skip() override {}
+  virtual void skip() override { /*TODO*/ }
 
   virtual void begin_array() override { expect('['); }
 
@@ -109,8 +109,9 @@ struct JsonDeserializer : public IDeserializer {
 
   virtual void do_int(int& i) override {
     trim();
-    i = strtol(_p, &_p, 10);
+    i = (int)strtol(_p, &_p, 10);
   }
+
   virtual void do_float(float& f) override {
     trim();
     f = (float)strtod(_p, &_p);
@@ -182,10 +183,10 @@ int main() {
   fvec.values[1] = 2;
   fvec.values[2] = 3;
   fvec.values[3] = 4;
-  TEST(R"([ 1 , 2 ,   3.0 ,   4 ])", fvec);
-  TEST(R"([ 1 , 2 ,   3 ,   4 ])", fvec);
-  TEST(R"([ 1 , 2 ,   3.0 ,   4 ])", fvec);
-  TEST(R"([ 1. , 2 ,   3.0 ,   4 ])", fvec);
+  TEST(R"([ 1 , 2 ,    3.0 ,   4 ])", fvec);
+  TEST(R"([ 1    , 2 ,   3 ,   4 ])", fvec);
+  TEST(R"([ 1 , 2 ,   3.0 ,    4 ])", fvec);
+  TEST(R"([ 1. , 2 ,   3.0 , 4   ])", fvec);
   fvec.values[0] = 1000;
   fvec.values[1] = -2;
   fvec.values[2] = 1500;
@@ -194,7 +195,7 @@ int main() {
 
   TEST(R"({"x" : 1, "y" : 2, "z" : 3})", v);
 
-  char * doc = R"({
+  char* doc = R"({
           "player" : [{
               "position" : {
                 "x" : 1,
@@ -228,6 +229,58 @@ int main() {
         })";
 
   TEST(doc, w);
+
+  char* doc2 =
+      R"({"player":[{"position":{"x":1,"y":2,"z":3},"state":1337},{"position":{"x":10,"y":11,"z":12},"state":1337},{"position":{"x":1,"y":2,"z":3},"state":1337},
+                  {"position":{"x":10,"y":11,"z":12},"state":1337}],"scores":[1,1.3,42,3.14]})";
+
+  TEST(doc2, w);
+
+  char* doc3 = R"(
+    {
+      "player": [
+        {
+          "position": {
+            "x": 1,
+            "y": 2,
+            "z": 3
+          },
+          "state": 1337
+        },
+        {
+          "position": {
+            "x": 10,
+            "y": 11,
+            "z": 12
+          },
+          "state": 1337
+        },
+        {
+          "position": {
+            "x": 1,
+            "y": 2,
+            "z": 3
+          },
+          "state": 1337
+        },
+        {
+          "position": {
+            "x": 10,
+            "y": 11,
+            "z": 12
+          },
+          "state": 1337
+        }
+      ],
+      "scores": [
+        1,
+        1.3,
+        42,
+        3.14
+      ]
+    })";
+
+  TEST(doc3, w);
 
   return 0;
 }
