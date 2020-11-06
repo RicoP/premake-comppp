@@ -44,12 +44,8 @@ struct JsonDeserializer : public IDeserializer {
 
   bool is_whitespace(char c) {
     switch (c) {
-      case ' ':
-      case '\t':
-      case '\r':
-      case '\n':
-      case ',':
-      case ':':  // we consider ',' and ':' a whitespace
+      case ' ': case '\t': case '\r': case '\n':
+      case ',': case ':': // we consider ',' and ':' a whitespace
         return true;
       default:
         return false;
@@ -107,7 +103,7 @@ struct JsonDeserializer : public IDeserializer {
 
   virtual bool in_array() override {
     char c = current();
-    if (c == ']') return false;
+    if (c == ']') { expect(']'); return false; }
     return true;
   }
 
@@ -130,7 +126,7 @@ int main() {
   p1.state = 1337;
 
   Player p2;
-  p2.position = {.x = 10, .y = 11, .z = 12};
+  p2.position = {10, 11,12};
   p2.state = 1337;
 
   World w;
@@ -149,13 +145,13 @@ int main() {
 
   serialize(w, jsons);
 
-#define TEST(STR, VAL)                         \
-  do {                                         \
-    std::cout << "serialize :" << STR << "\n"; \
-    JsonDeserializer jsond(STR);               \
-    decltype(VAL) i;                           \
-    deserialize(i, jsond);                     \
-    assert(i == VAL);                          \
+#define TEST(STR, VAL)                          \
+  do {                                          \
+    puts("serialize :"); puts(STR); puts("\n"); \
+    JsonDeserializer jsond(STR);                \
+    decltype(VAL) i;                            \
+    deserialize(i, jsond);                      \
+    assert(i == VAL);                           \
   } while (0)
 
   TEST("123", 123);
@@ -197,6 +193,41 @@ int main() {
   TEST(R"([1e3, -2e0, 1.5e3, 0e10])", fvec);
 
   TEST(R"({"x" : 1, "y" : 2, "z" : 3})", v);
+
+  char * doc = R"({
+          "player" : [{
+              "position" : {
+                "x" : 1,
+                "y" : 2,
+                "z" : 3
+              },
+              "state" : 1337
+            }, {
+              "position" : {
+                "x" : 10,
+                "y" : 11,
+                "z" : 12
+              },
+              "state" : 1337
+            }, {
+              "position" : {
+                "x" : 1,
+                "y" : 2,
+                "z" : 3
+              },
+              "state" : 1337
+            }, {
+              "position" : {
+                "x" : 10,
+                "y" : 11,
+                "z" : 12
+              },
+              "state" : 1337
+            }],
+          "scores" : [1, 1.3, 42, 3.14]
+        })";
+
+  TEST(doc, w);
 
   return 0;
 }
