@@ -1,16 +1,15 @@
 #include <iostream>
+
 #include "serializer.h"
 
 struct JsonSerializer : public ISerializer {
   const char* _name = "";
   enum { MAX_DEPTH = 64 };
   char queued[MAX_DEPTH] = {0};
-  char whitespace[MAX_DEPTH*2 + 1] = {0};
+  char whitespace[MAX_DEPTH * 2 + 1] = {0};
   int indent_depth = 0;
 
-  JsonSerializer() { 
-    std::memset(whitespace, ' ', MAX_DEPTH * 2);
-  }
+  JsonSerializer() { std::memset(whitespace, ' ', MAX_DEPTH * 2); }
 
   void queue_char(char c) {
     if (queued[indent_depth]) std::cout << queued[indent_depth] << " ";
@@ -63,17 +62,38 @@ struct JsonDeserializer : public IDeserializer {
     return *_p;
   }
 
+  bool contains(char c, const char* chars) {
+    while (*chars) {
+      if (*chars == c) return true;
+      chars++;
+    }
+    return false;
+  }
+
+  char* seek(const char* chars) {
+    char* p = _p;
+    while (*p != 0 && !contains(*p, chars)) ++p;
+    if (*p == 0)
+      std::cerr << "Error: expected '" << chars << "' but got "
+                << "EOF"
+                << ".\n";
+    return p;
+  }
+
   char* seek(char c) {
     char* p = _p;
     while (*p != c && *p != 0) ++p;
-    if (*p == 0) std::cerr << "Expected " << c << " but found EOF.";
+    if (*p == 0)
+      std::cerr << "Error: expected '" << c << "' but got "
+                << "EOF"
+                << ".\n";
     return p;
   }
 
   void expect(char c) {
     trim();
     if (*_p != c)
-      std::cerr << "Error: expected " << c << " got " << *_p << ".\n";
+      std::cerr << "Error: expected '" << c << "' but got " << *_p << ".\n";
     else
       ++_p;
   }
@@ -97,12 +117,41 @@ struct JsonDeserializer : public IDeserializer {
     return false;
   }
 
-  virtual void skip_key() override { /*TODO*/ }
+  virtual void begin_enum() override { expect('\"'); }
+
+  virtual bool in_enum() override {
+    trim();
+    //_p points on first character of next enum or on "
+    if (current() == '\"') {
+        _p++;
+        return false;
+    }
+    if (current() == '\n') {
+      std::cerr << "Error: expected '" << "String" << "' but got " << "EOL" << ".\n";
+      return false;
+    }
+
+    char* end = seek(",\"\n");
+    _name_hash = ros::hash_fnv(_p, end);
+    _p = end;
+    return true;
+  }
+
+  virtual void skip_key() override { /*TODO*/
+  }
 
   virtual bool in_array() override {
     char c = current();
-    if (c == ']') { expect(']'); return false; }
+    if (c == ']') {
+      expect(']');
+      return false;
+    }
     return true;
+  }
+
+  virtual void do_float(float& f) override {
+    trim();
+    f = (float)strtod(_p, &_p);
   }
 
   virtual void do_int(int& i) override {
@@ -110,8 +159,8 @@ struct JsonDeserializer : public IDeserializer {
     i = (int)strtol(_p, &_p, 10);
   }
 
-  virtual void do_float(float& f) override {
+  virtual void do_long(long long& i) override {
     trim();
-    f = (float)strtod(_p, &_p);
+    i = strtoll(_p, &_p, 10);
   }
 };

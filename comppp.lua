@@ -82,10 +82,7 @@ end
 -- vector3 -> false
 -- float[3] -> true
 function vector(type)
-  if(type:match("%[%d+%]")) then
-    return true
-  end
-  return false
+  return type:match("%[%d+%]")
 end
 
 function execute()

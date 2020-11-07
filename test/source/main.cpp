@@ -12,11 +12,11 @@ int main() {
 
   Player p1;
   p1.position = v;
-  p1.state = 1337;
+  p1.state = Player::State::Active;
 
   Player p2;
   p2.position = {10, 11, 12};
-  p2.state = 1337;
+  p2.state = Player::State::Active;
 
   World w;
   w.setDefaultValues();
@@ -85,6 +85,8 @@ int main() {
 
   TEST(R"({"x" : 1, "y" : 2, "z" : 3})", v);
 
+  TEST(R"("Active")", Player::State::Active);
+
   char* doc = R"({
           "player" : [{
               "position" : {
@@ -92,28 +94,28 @@ int main() {
                 "y" : 2,
                 "z" : 3
               },
-              "state" : 1337
+              "state" : "Active"
             }, {
               "position" : {
                 "x" : 10,
                 "y" : 11,
                 "z" : 12
               },
-              "state" : 1337
+              "state" : "Active"
             }, {
               "position" : {
                 "x" : 1,
                 "y" : 2,
                 "z" : 3
               },
-              "state" : 1337
+              "state" : "Active"
             }, {
               "position" : {
                 "x" : 10,
                 "y" : 11,
                 "z" : 12
               },
-              "state" : 1337
+              "state" : "Active"
             }],
           "scores" : [1, 1.3, 42, 3.14]
         })";
@@ -121,8 +123,8 @@ int main() {
   TEST(doc, w);
 
   char* doc2 =
-      R"({"player":[{"position":{"x":1,"y":2,"z":3},"state":1337},{"position":{"x":10,"y":11,"z":12},"state":1337},{"position":{"x":1,"y":2,"z":3},"state":1337},
-                  {"position":{"x":10,"y":11,"z":12},"state":1337}],"scores":[1,1.3,42,3.14]})";
+      R"({"player":[{"position":{"x":1,"y":2,"z":3},"state":"Active"},{"position":{"x":10,"y":11,"z":12},"state":"Active"},{"position":{"x":1,"y":2,"z":3},"state":"Active"},
+                  {"position":{"x":10,"y":11,"z":12},"state":"Active"}],"scores":[1,1.3,42,3.14]})";
 
   TEST(doc2, w);
 
@@ -135,7 +137,7 @@ int main() {
             "y": 2,
             "z": 3
           },
-          "state": 1337
+          "state" : "Active"
         },
         {
           "position": {
@@ -143,7 +145,7 @@ int main() {
             "y": 11,
             "z": 12
           },
-          "state": 1337
+          "state" : "Active"
         },
         {
           "position": {
@@ -151,7 +153,7 @@ int main() {
             "y": 2,
             "z": 3
           },
-          "state": 1337
+          "state" : "Active"
         },
         {
           "position": {
@@ -159,7 +161,7 @@ int main() {
             "y": 11,
             "z": 12
           },
-          "state": 1337
+          "state" : "Active"
         }
       ],
       "scores": [

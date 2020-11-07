@@ -81,8 +81,12 @@ class IDeserializer {
 
   virtual bool in_array() = 0;
 
+  virtual void begin_enum() = 0;
+  virtual bool in_enum() = 0;
+
   virtual void do_float(float &) = 0;
   virtual void do_int(int &) = 0;
+  virtual void do_long(long long &) = 0;
 };
 
 class ISerializer {
@@ -97,6 +101,7 @@ class ISerializer {
 
   virtual void do_float(float) = 0;
   virtual void do_int(int) = 0;
+  virtual void do_long(long long) = 0;
 };
 
 namespace ros {
@@ -117,6 +122,10 @@ struct array {
 template <size_t N, class T>
 inline hash_value hash(const array<N, T> &v);
 }  // namespace ros
+
+inline void serialize(long long &i, ISerializer &s) { s.do_long(i); }
+inline void deserialize(long long &i, IDeserializer &d) { d.do_long(i); }
+
 
 inline void serialize(int &i, ISerializer &s) { s.do_int(i); }
 inline void deserialize(int &i, IDeserializer &d) { d.do_int(i); }
