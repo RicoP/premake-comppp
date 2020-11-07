@@ -38,11 +38,11 @@ int main() {
   do {                           \
     puts("serialize :");         \
     puts(STR);                   \
-    puts("\n");                  \
     JsonDeserializer jsond(STR); \
     decltype(VAL) i;             \
     deserialize(i, jsond);       \
-    assert(i == VAL);            \
+    assert(i == (VAL));          \
+    puts("OK\n");                  \
   } while (0)
 
   TEST("123", 123);
@@ -86,6 +86,15 @@ int main() {
   TEST(R"({"x" : 1, "y" : 2, "z" : 3})", v);
 
   TEST(R"("Active")", Player::State::Active);
+  TEST(R"("Active,Jumping")", Player::State::Active | Player::State::Jumping);
+
+  TEST(R"("   Active")", Player::State::Active);
+  TEST(R"("   Active     ")", Player::State::Active);
+
+  TEST(R"("   Active,Jumping")", Player::State::Active | Player::State::Jumping);
+  TEST(R"("   Active,Jumping    ")", Player::State::Active | Player::State::Jumping);
+  TEST(R"("   Active   ,    Jumping    ")", Player::State::Active | Player::State::Jumping);
+  TEST(R"("   Active   ,Jumping    ")", Player::State::Active | Player::State::Jumping);
 
   char* doc = R"({
           "player" : [{

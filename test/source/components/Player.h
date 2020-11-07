@@ -22,10 +22,18 @@ struct Player {
   }
 };
 
+Player::State operator|(Player::State lhs, Player::State rhs) {
+  return static_cast<Player::State>(static_cast<char>(lhs) | static_cast<char>(rhs));
+}
+
+Player::State operator|=(Player::State & lhs, Player::State rhs) {
+  return lhs = lhs | rhs;
+}
+
 inline void serialize(Player::State &o, ISerializer &s) {
-  long long l = (long long)o;
+  //long long l = (long long)o;
   // TODO: switch case for all enum values;
-  serialize(l, s);
+  //serialize(l, s);
 }
 
 inline void deserialize(Player::State &o, IDeserializer &d) {

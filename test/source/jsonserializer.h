@@ -131,7 +131,7 @@ struct JsonDeserializer : public IDeserializer {
       return false;
     }
 
-    char* end = seek(",\"\n");
+    char* end = seek(" \t,\"\n");
     _name_hash = ros::hash_fnv(_p, end);
     _p = end;
     return true;
@@ -159,8 +159,8 @@ struct JsonDeserializer : public IDeserializer {
     i = (int)strtol(_p, &_p, 10);
   }
 
-  virtual void do_long(long long& i) override {
+  /*virtual void do_long(long long& i) override {
     trim();
     i = strtoll(_p, &_p, 10);
-  }
+  }*/
 };
