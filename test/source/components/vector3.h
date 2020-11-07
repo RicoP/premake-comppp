@@ -31,12 +31,12 @@ bool operator!=(const vector3 &lhs, const vector3 &rhs) {
 //serializer                                                     //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(vector3 &o, ISerializer &s) {
-  s.hint_type("vector3");
-  s.set_field_name("x");
+  s.begin();
+  s.key("x");
   serialize(o.x, s);
-  s.set_field_name("y");
+  s.key("y");
   serialize(o.y, s);
-  s.set_field_name("z");
+  s.key("z");
   serialize(o.z, s);
   s.end();
 }

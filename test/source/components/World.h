@@ -30,10 +30,10 @@ bool operator!=(const World &lhs, const World &rhs) {
 //serializer                                                     //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(World &o, ISerializer &s) {
-  s.hint_type("World");
-  s.set_field_name("player");
+  s.begin();
+  s.key("player");
   serialize(o.player, s);
-  s.set_field_name("scores");
+  s.key("scores");
   serialize(o.scores, s);
   s.end();
 }

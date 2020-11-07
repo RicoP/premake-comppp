@@ -24,6 +24,7 @@ int main() {
   w.player.values[1] = p2;
   w.player.values[2] = p1;
   w.player.values[3] = p2;
+  w.player.values[3].state = Player::State::Active | Player::State::Jumping;
   w.player.size = 4;
 
   w.scores.values[0] = 1;
@@ -33,6 +34,7 @@ int main() {
   w.scores.size = 4;
 
   serialize(w, jsons);
+  puts("");
 
 #define TEST(STR, VAL)           \
   do {                           \
@@ -42,7 +44,7 @@ int main() {
     decltype(VAL) i;             \
     deserialize(i, jsond);       \
     assert(i == (VAL));          \
-    puts("OK\n");                  \
+    puts("OK\n");                \
   } while (0)
 
   TEST("123", 123);
@@ -52,8 +54,8 @@ int main() {
   TEST(" 123.5 ", 123.5f);
   TEST("123.5 ", 123.5f);
   TEST("-123.0", -123.0f);
-  TEST("-123.5,,,,,,", -123.5f);
-  TEST("1e3,,,,,,", 1000.0f);
+  TEST("-123.5,", -123.5f);
+  TEST("1e3,", 1000.0f);
 
   ros::array<4, int> vec;
   vec.size = 4;
@@ -66,6 +68,10 @@ int main() {
   TEST(R"([ 1, 2, 3, 4])", vec);
   TEST(R"([1 ,2 ,3 ,4 ])", vec);
   TEST(R"([ 1 , 2 ,   3 ,   4 ])", vec);
+  TEST("[ 1 , 2 ,   3 \n,   4 ]", vec);
+  TEST("[ 1 , 2 ,   3 ,\n   4 ]", vec);
+  TEST("[ 1 , 2 ,   3 ,\r\n   4 ]", vec);
+  TEST("[ 1 , 2 ,   3 \r\n,\r\n   4 ]", vec);
 
   ros::array<4, float> fvec;
   fvec.size = 4;
@@ -86,15 +92,15 @@ int main() {
   TEST(R"({"x" : 1, "y" : 2, "z" : 3})", v);
 
   TEST(R"("Active")", Player::State::Active);
-  TEST(R"("Active,Jumping")", Player::State::Active | Player::State::Jumping);
+  TEST(R"("Active|Jumping")", Player::State::Active | Player::State::Jumping);
 
   TEST(R"("   Active")", Player::State::Active);
   TEST(R"("   Active     ")", Player::State::Active);
 
-  TEST(R"("   Active,Jumping")", Player::State::Active | Player::State::Jumping);
-  TEST(R"("   Active,Jumping    ")", Player::State::Active | Player::State::Jumping);
-  TEST(R"("   Active   ,    Jumping    ")", Player::State::Active | Player::State::Jumping);
-  TEST(R"("   Active   ,Jumping    ")", Player::State::Active | Player::State::Jumping);
+  TEST(R"("   Active|Jumping")", Player::State::Active | Player::State::Jumping);
+  TEST(R"("   Active|Jumping    ")", Player::State::Active | Player::State::Jumping);
+  TEST(R"("   Active   |    Jumping    ")", Player::State::Active | Player::State::Jumping);
+  TEST(R"("   Active   |Jumping    ")", Player::State::Active | Player::State::Jumping);
 
   char* doc = R"({
           "player" : [{
@@ -124,7 +130,7 @@ int main() {
                 "y" : 11,
                 "z" : 12
               },
-              "state" : "Active"
+              "state" : "Active|Jumping"
             }],
           "scores" : [1, 1.3, 42, 3.14]
         })";
@@ -133,7 +139,7 @@ int main() {
 
   char* doc2 =
       R"({"player":[{"position":{"x":1,"y":2,"z":3},"state":"Active"},{"position":{"x":10,"y":11,"z":12},"state":"Active"},{"position":{"x":1,"y":2,"z":3},"state":"Active"},
-                  {"position":{"x":10,"y":11,"z":12},"state":"Active"}],"scores":[1,1.3,42,3.14]})";
+                  {"position":{"x":10,"y":11,"z":12},"state":"Active|Jumping"}],"scores":[1,1.3,42,3.14]})";
 
   TEST(doc2, w);
 
@@ -170,7 +176,7 @@ int main() {
             "y": 11,
             "z": 12
           },
-          "state" : "Active"
+          "state" : "Active|Jumping"
         }
       ],
       "scores": [
@@ -183,5 +189,7 @@ int main() {
 
   TEST(doc3, w);
 
+  puts("_______");
+  puts("All OK!");
   return 0;
 }

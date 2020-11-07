@@ -74,14 +74,14 @@ inline hash_value hash(wchar_t v) { return internal::hash_simple(v); }
 
 class IDeserializer {
  public:
+  typedef ros::hash_value hash;
 
   virtual bool next_key() = 0;
   virtual void skip_key() = 0;
-  virtual ros::hash_value hash_key() = 0;
+  virtual hash hash_key() = 0;
 
   virtual bool in_array() = 0;
 
-  virtual void begin_enum() = 0;
   virtual bool in_enum() = 0;
 
   virtual void do_float(float &) = 0;
@@ -91,17 +91,21 @@ class IDeserializer {
 
 class ISerializer {
  public:
-  virtual void set_field_name(const char *) = 0;
+  virtual void key(const char *) = 0;
 
-  virtual void hint_type(const char *) = 0;
+  virtual void begin() = 0;
   virtual void end() = 0;
 
   virtual void begin_array() = 0;
   virtual void end_array() = 0;
 
+  virtual void write_enum(const char *) = 0;
+  virtual void end_enum() = 0;
+
   virtual void do_float(float) = 0;
   virtual void do_int(int) = 0;
   //virtual void do_long(long long) = 0;
+
 };
 
 namespace ros {

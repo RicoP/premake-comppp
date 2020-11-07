@@ -30,33 +30,40 @@ Player::State operator|=(Player::State & lhs, Player::State rhs) {
   return lhs = lhs | rhs;
 }
 
+Player::State operator&(Player::State lhs, Player::State rhs) {
+  return static_cast<Player::State>(static_cast<char>(lhs) & static_cast<char>(rhs));
+}
+
+Player::State operator&=(Player::State & lhs, Player::State rhs) {
+  return lhs = lhs & rhs;
+}
+
 inline void serialize(Player::State &o, ISerializer &s) {
-  //long long l = (long long)o;
-  // TODO: switch case for all enum values;
-  //serialize(l, s);
+  if ((o & Player::State::Active) != Player::State::None) s.write_enum("Active");
+  if ((o & Player::State::Jumping) != Player::State::None) s.write_enum("Jumping");
+  s.end_enum();
 }
 
 inline void deserialize(Player::State &o, IDeserializer &d) {
-  long long l = 0;
-  d.begin_enum();
+  o = Player::State::None;
   while (d.in_enum()) {
     switch (d.hash_key()) {
       case ros::hash("Active"):
-        l |= (long long)Player::State::Active;
+        o |= Player::State::Active;
         break;
       case ros::hash("Jumping"):
-        l |= (long long)Player::State::Jumping;
+        o |= Player::State::Jumping;
         break;
       default:
         break;
     }
   }
-  o = (Player::State)l;
 }
 
 bool operator==(const Player &lhs, const Player &rhs) {
   return lhs.equals(rhs);
 }
+
 bool operator!=(const Player &lhs, const Player &rhs) {
   return !lhs.equals(rhs);
 }
@@ -65,10 +72,10 @@ bool operator!=(const Player &lhs, const Player &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Player &o, ISerializer &s) {
-  s.hint_type("Player");
-  s.set_field_name("position");
+  s.begin();
+  s.key("position");
   serialize(o.position, s);
-  s.set_field_name("state");
+  s.key("state");
   serialize(o.state, s);
   s.end();
 }

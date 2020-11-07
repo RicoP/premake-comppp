@@ -3,7 +3,6 @@
 #include "serializer.h"
 
 struct JsonSerializer : public ISerializer {
-  const char* _name = "";
   enum { MAX_DEPTH = 64 };
   char queued[MAX_DEPTH] = {0};
   char whitespace[MAX_DEPTH * 2 + 1] = {0};
@@ -11,35 +10,43 @@ struct JsonSerializer : public ISerializer {
 
   JsonSerializer() { std::memset(whitespace, ' ', MAX_DEPTH * 2); }
 
+  template <class T, class... Ts>
+  void put(T a, Ts... bcd)  { put(a); put(bcd...);                            }
+  void put(const char* str) { printf("%s", str);                              }
+  void put(      char* str) { printf("%s", str);                              }
+  void put(        float f) { printf("%g", f);                                }
+  void put(         char c) { printf("%c", c);                                }
+  void put(          int i) { printf("%d", i);                                }
+  void print_indent()       { put("\n", whitespace + 128 - indent_depth * 2); }
+
+  char queue()              { return queued[indent_depth];                    }
+  void clear()              { queued[indent_depth] = 0;                       }
+  void indent()             { ++indent_depth;                                 }
+  void unindent()           { queued[indent_depth--] = 0;                     }
+
   void queue_char(char c) {
-    if (queued[indent_depth]) std::cout << queued[indent_depth] << " ";
+    if (queued[indent_depth]) put(queued[indent_depth], c==','?" ":"");
     queued[indent_depth] = c;
   }
 
-  void indent() { ++indent_depth; }
-  void unindent() { queued[indent_depth--] = 0; }
-
-  void print_indent() {
-    std::cout << '\n' << (whitespace + 128 - indent_depth * 2);
-  }
-
-  virtual void set_field_name(const char* name) override { queue_char(',');             print_indent(); std::cout << "\"" << name << "\" : "; queued[indent_depth] = 0; _name = name; }
-  virtual void hint_type(const char* type)      override { queue_char(',');   indent();                 std::cout << "{"; }
-  virtual void end()                            override {                  unindent(); print_indent(); std::cout << "}"; }
-  virtual void begin_array()                    override { queue_char(',');   indent();                 std::cout << "["; }
-  virtual void end_array()                      override {                  unindent();                 std::cout << "]"; }
-  virtual void do_float(float f)                override { queue_char(',');                             std::cout << f;   }
-  virtual void do_int(int i)                    override { queue_char(',');                             std::cout << i;   }
+  virtual void key(const char* name)     override { queue_char(',');             print_indent();  put("\"", name, "\" : "); clear(); }
+  virtual void begin()                   override { queue_char(',');   indent();                  put("{");                          }
+  virtual void end()                     override {                  unindent(); print_indent();  put("}");                          }
+  virtual void begin_array()             override { queue_char(',');   indent();                  put("[");                          }
+  virtual void end_array()               override {                  unindent();                  put("]");                          }
+  virtual void write_enum(const char* e) override { if(queue() == 0) put("\"");  queue_char('|'); put(e);                            }
+  virtual void end_enum()                override {                                               put("\"");                clear(); }
+  virtual void do_float(float f)         override { queue_char(',');                              put(f);                            }
+  virtual void do_int(int i)             override { queue_char(',');                              put(i);                            }
 };
 
 struct JsonDeserializer : public IDeserializer {
-  char* _json = 0;
   char* _p = 0;
-  ros::hash_value _name_hash = 0;
+  hash _name_hash = 0;
+  bool enum_started = false;
 
   JsonDeserializer(char* json) {
-    _json = json;
-    _p = _json;
+    _p = json;
   }
 
   bool is_whitespace(char c) {
@@ -47,6 +54,7 @@ struct JsonDeserializer : public IDeserializer {
       case ' ': case '\t': case '\r': case '\n':
       case ',': case ':': // we consider ',' and ':' a whitespace
       case '{': case '[': // we also consider beginning tokens a whitespace
+      case '|':
         return true;
       default:
         return false;
@@ -98,7 +106,7 @@ struct JsonDeserializer : public IDeserializer {
       ++_p;
   }
 
-  virtual ros::hash_value hash_key() override { return _name_hash; }
+  virtual hash hash_key() override { return _name_hash; }
 
   virtual bool next_key() override {
     char c = current();
@@ -117,28 +125,27 @@ struct JsonDeserializer : public IDeserializer {
     return false;
   }
 
-  virtual void begin_enum() override { expect('\"'); }
-
   virtual bool in_enum() override {
+    if(!enum_started) { expect('\"'); enum_started = true; }
     trim();
     //_p points on first character of next enum or on "
     if (current() == '\"') {
-        _p++;
-        return false;
+      _p++;
+      enum_started = false;
+      return false;
     }
     if (current() == '\n') {
       std::cerr << "Error: expected '" << "String" << "' but got " << "EOL" << ".\n";
       return false;
     }
 
-    char* end = seek(" \t,\"\n");
+    char* end = seek(" \t|\"\n");
     _name_hash = ros::hash_fnv(_p, end);
     _p = end;
     return true;
   }
 
-  virtual void skip_key() override { /*TODO*/
-  }
+  virtual void skip_key() override { /*TODO*/ }
 
   virtual bool in_array() override {
     char c = current();
@@ -151,7 +158,7 @@ struct JsonDeserializer : public IDeserializer {
 
   virtual void do_float(float& f) override {
     trim();
-    f = (float)strtod(_p, &_p);
+    f = strtof(_p, &_p);
   }
 
   virtual void do_int(int& i) override {
