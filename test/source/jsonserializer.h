@@ -62,7 +62,7 @@ struct JsonSerializer : public ISerializer {
                 case '\n': put("\\n"); break;
                 case '\r': put("\\r"); break;
                 case '\\': put("\\\\"); break;
-                case '\/': put("\\\/"); break;
+                case '/':  put("\\/"); break;
                 case '\b': put("\\b"); break;
                 case '\f': put("\\f"); break;
                 case '\t': put("\\t"); break;
@@ -230,7 +230,7 @@ struct JsonDeserializer : public IDeserializer {
             c = *_p;
             switch(c) {
                 case '\\': *s++ = '\\'; break;
-                case '\/': *s++ = '\/'; break;
+                case '/': *s++ = '/'; break;
                 case 'n':  *s++ = '\n'; break;
                 case 'r':  *s++ =  '\r'; break;
                 case 'b':  *s++ = '\b'; break;

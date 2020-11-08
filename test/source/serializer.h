@@ -78,6 +78,9 @@ namespace ros
   struct string {
     char data[N];
   };
+
+  template<size_t N>
+  hash_value hash(string<N> s) { ros::hash_fnv(s.data, s.data+N); }
 }
 
 template <size_t N, size_t M>

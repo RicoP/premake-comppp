@@ -71,6 +71,9 @@ function vtype(type)
   end
   return type
 end
+assert(vtype("int") == "int")
+assert(vtype("vector3") == "vector3")
+assert(vtype("float[3]") == "float")
 
 -- int -> int
 -- vector3 -> vector3
@@ -82,23 +85,34 @@ function ctype(type)
   end
   return type
 end
+assert(ctype("int") == "int")
+assert(ctype("vector3") == "vector3")
+assert(ctype("float[3]") == "float[]")
 
 -- int -> 1
 -- vector3 -> 1
 -- float[3] -> 3
 function size(type)
-  if(type:match("%[%d+%]")) then
-    return type:match("%d+")
+  local s = type:match("%[%d+%]");
+  if s then
+    return tonumber(s:match("%d+"))
   end
   return 1
 end
+assert(size("int") == 1)
+assert(size("vector3") == 1)
+assert(size("float[3]") == 3)
+
 
 -- int -> false
 -- vector3 -> false
 -- float[3] -> true
 function vector(type)
-  return type:match("%[%d+%]")
+  return type:match("%[%d+%]") ~= nil
 end
+assert(vector("int") == false)
+assert(vector("vector3") == false)
+assert(vector("float[3]") == true)
 
 -- int -> false
 -- vector3 -> false
@@ -106,6 +120,27 @@ end
 function enum(type)
   return type:match("|") ~= nil
 end
+assert(enum("int") == false)
+assert(enum("vector3") == false)
+assert(enum("Action|Blub") == true)
+
+-- int -> 0
+-- vector3 -> 0
+-- float[3] -> 0
+-- string(3) -> 3
+-- string(1024) -> 1024
+function string_type(type)
+  local s = type:match("string%(%d+%)")
+  if s ~= nil then
+    return tonumber(s:match("%d+"))
+  end
+  return 0
+end
+assert(string_type("int") == 0)
+assert(string_type("vector3") == 0)
+assert(string_type("float[3]") == 0)
+assert(string_type("string(3)") == 3)
+assert(string_type("string(1024)") == 1024)
 
 function execute()
   for struct, fieldsUnsorted in pairs(components) do
@@ -155,6 +190,8 @@ function execute()
         end
         write('  };                                                                           ')
         write('  ' .. firstToUpper(name) .. ' ' .. name .. ';')
+      elseif string_type(valtype) ~= 0 then
+        write('  ros::string<' .. string_type(valtype) .. '> ' .. name .. ';')
       elseif vector(valtype) then
         write('  ros::array<' .. size(valtype) .. ', ' .. vtype(valtype) .. '> ' .. name .. ';')
       else

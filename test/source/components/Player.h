@@ -58,9 +58,13 @@ inline void deserialize(Player::State &o, IDeserializer &d) {
   }
 }
 
-inline bool operator==(const Player &lhs, const Player &rhs) { return lhs.equals(rhs); }
+inline bool operator==(const Player &lhs, const Player &rhs) {
+  return lhs.equals(rhs);
+}
 
-inline bool operator!=(const Player &lhs, const Player &rhs) { return !lhs.equals(rhs); }
+inline bool operator!=(const Player &lhs, const Player &rhs) {
+  return !lhs.equals(rhs);
+}
 
 ///////////////////////////////////////////////////////////////////
 // serializer                                                    //
