@@ -50,7 +50,7 @@ inline void deserialize(World &o, IDeserializer &s) {
     switch (s.hash_key()) {
       case ros::hash("player"): deserialize(o.player, s); break;
       case ros::hash("scores"): deserialize(o.scores, s); break;
-      default: s.skip_key();
+      default: s.skip_key(); break;
     }
   }
 }

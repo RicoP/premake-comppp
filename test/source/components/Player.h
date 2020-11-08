@@ -26,20 +26,14 @@ struct Player {
 };
 
 Player::State operator|(Player::State lhs, Player::State rhs) {
-  return static_cast<Player::State>(static_cast<char>(lhs) | static_cast<char>(rhs));
+  return static_cast<Player::State>(static_cast<long long>(lhs) | static_cast<long long>(rhs));
 }
-
-Player::State operator|=(Player::State & lhs, Player::State rhs) {
-  return lhs = lhs | rhs;
-}
+Player::State operator|=(Player::State & lhs, Player::State rhs)  { return lhs = lhs | rhs; }
 
 Player::State operator&(Player::State lhs, Player::State rhs) {
-  return static_cast<Player::State>(static_cast<char>(lhs) & static_cast<char>(rhs));
+  return static_cast<Player::State>(static_cast<long long>(lhs) & static_cast<long long>(rhs));
 }
-
-Player::State operator&=(Player::State & lhs, Player::State rhs) {
-  return lhs = lhs & rhs;
-}
+Player::State operator&=(Player::State & lhs, Player::State rhs) { return lhs = lhs & rhs; }
 
 inline void serialize(Player::State &o, ISerializer &s) {
   if ((o & Player::State::Active) != Player::State::None) s.write_enum("Active");
@@ -91,7 +85,7 @@ inline void deserialize(Player &o, IDeserializer &s) {
     switch (s.hash_key()) {
       case ros::hash("position"): deserialize(o.position, s); break;
       case ros::hash("state"): deserialize(o.state, s); break;
-      default: s.skip_key();
+      default: s.skip_key(); break;
     }
   }
 }

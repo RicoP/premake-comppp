@@ -54,7 +54,7 @@ inline void deserialize(vector3 &o, IDeserializer &s) {
       case ros::hash("x"): deserialize(o.x, s); break;
       case ros::hash("y"): deserialize(o.y, s); break;
       case ros::hash("z"): deserialize(o.z, s); break;
-      default: s.skip_key();
+      default: s.skip_key(); break;
     }
   }
 }
