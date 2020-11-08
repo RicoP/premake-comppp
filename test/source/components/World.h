@@ -21,11 +21,11 @@ struct World {
   }
 };
 
-bool operator==(const World &lhs, const World &rhs) {
+inline bool operator==(const World &lhs, const World &rhs) {
   return lhs.equals(rhs);
 }
 
-bool operator!=(const World &lhs, const World &rhs) {
+inline bool operator!=(const World &lhs, const World &rhs) {
   return !lhs.equals(rhs);
 }
 
@@ -48,8 +48,12 @@ inline void deserialize(World &o, IDeserializer &s) {
   o.setDefaultValues();
   while (s.next_key()) {
     switch (s.hash_key()) {
-      case ros::hash("player"): deserialize(o.player, s); break;
-      case ros::hash("scores"): deserialize(o.scores, s); break;
+      case ros::hash("player"):
+        deserialize(o.player, s);
+        break;
+      case ros::hash("scores"):
+        deserialize(o.scores, s);
+        break;
       default: s.skip_key(); break;
     }
   }

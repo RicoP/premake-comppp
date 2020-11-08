@@ -164,22 +164,22 @@ function execute()
 
     --default values
     write("")
-    write("  void setDefaultValues() {")
-    write("    std::memset(this, 0, sizeof(" .. struct .. "));")
+    write("  void setDefaultValues() {                                        ")
+    write("    std::memset(this, 0, sizeof(" .. struct .. "));                ")
     for i=1,#fields do
       local name = fields[i][1]
       local valtype = fields[i][2]
       local defaultValue = fields[i][3]
 
       if defaultValue then
-        write("    " .. name .. " = " .. defaultValue .. ";")
+        write("    " .. name .. " = " .. defaultValue .. ";                   ")
       else
         if components[valtype] then
           -- feld in struct is one of our components. means it has a init method.
           write("    " .. name .. ".setDefaultValues();")
         end
         if vector(valtype) then
-          write("    " .. name .. ".size = 0;")
+          write("    " .. name .. ".size = 0;                                 ")
         end
       end
     end
@@ -198,9 +198,9 @@ function execute()
       end
       write_no_new_line("      " .. name .. " == rhs." .. name)
     end
-    write(";")
-    write("  }")
-    write('};')
+    write(';                                                                  ')
+    write('  }                                                                ')
+    write('};                                                                 ')
     write('')
     --struct end
 
@@ -211,49 +211,51 @@ function execute()
 
       if enum(valtype) then
         local E = struct .. "::" .. firstToUpper(name)
-        write(E .. ' operator|(' .. E .. ' lhs, ' .. E .. ' rhs) {                                 ')
-        write('  return static_cast<' .. E .. '>(static_cast<long long>(lhs) | static_cast<long long>(rhs)); ')
-        write('}                                                                                   ')
-        write(E .. ' operator|=(' .. E .. ' & lhs, ' .. E .. ' rhs)  { return lhs = lhs | rhs; }   ')
-        write('                                                                                    ')
-        write(E .. ' operator&(' .. E .. ' lhs, ' .. E .. ' rhs) {                                 ')
-        write('  return static_cast<' .. E .. '>(static_cast<long long>(lhs) & static_cast<long long>(rhs)); ')
-        write('}                                                                                   ')
-        write(E .. ' operator&=(' .. E .. ' & lhs, ' .. E .. ' rhs) { return lhs = lhs & rhs; }    ')
-        write('                                                                                    ')
-        write('inline void serialize(' .. E .. ' &o, ISerializer &s) {                             ')
+        write('inline ' .. E .. ' operator|(' .. E .. ' lhs, ' .. E .. ' rhs) {                              ')
+        write('  return (' .. E .. ')((long long)(lhs) | (long long)(rhs));                                  ')
+        write('}                                                                                             ')
+        write('                                                                                              ')
+        write('inline ' .. E .. ' operator&(' .. E .. ' lhs, ' .. E .. ' rhs) {                              ')
+        write('  return (' .. E .. ')((long long)(lhs) & (long long)(rhs));                                  ')
+        write('}                                                                                             ')
+        write('                                                                                              ')
+        write('inline ' .. E .. ' operator&=(' .. E .. ' & lhs, ' .. E .. ' rhs) { return lhs = lhs & rhs; } ')
+        write('inline ' .. E .. ' operator|=(' .. E .. ' & lhs, ' .. E .. ' rhs) { return lhs = lhs | rhs; } ')
+        write('                                                                                              ')
+        write('inline void serialize(' .. E .. ' &o, ISerializer &s) {                                       ')
         local myTable = valtype:split("|")
         for i,v in pairs(myTable) do
-          write('  if ((o & ' .. E .. '::' .. v .. ') != ' .. E .. '::None) s.write_enum("' .. v .. '"); ')
+          write('  if ((o & ' .. E .. '::' .. v .. ') != ' .. E .. '::None) s.write_enum("' .. v .. '");     ')
         end
 
-        write('  s.end_enum();                                                                     ')
-        write('}                                                                                   ')
-        write('                                                                                    ')
-        write('inline void deserialize(' .. E .. ' &o, IDeserializer &d) {                         ')
-        write('  o = ' .. E .. '::None;                                                            ')
-        write('  while (d.in_enum()) {                                                             ')
-        write('    switch (d.hash_key()) {                                                         ')
+        write('  s.end_enum();                                                                               ')
+        write('}                                                                                             ')
+        write('                                                                                              ')
+        write('inline void deserialize(' .. E .. ' &o, IDeserializer &d) {                                   ')
+        write('  o = ' .. E .. '::None;                                                                      ')
+        write('  while (d.in_enum()) {                                                                       ')
+        write('    switch (d.hash_key()) {                                                                   ')
         for i,v in pairs(myTable) do
-          write('      case ros::hash("' .. v .. '"):                                              ')
-          write('        o |= ' .. E .. '::' .. v .. ';                                            ')
-          write('        break;                                                                    ')
+          write('      case ros::hash("' .. v .. '"):                                                        ')
+          write('        o |= ' .. E .. '::' .. v .. ';                                                      ')
+          write('        break;                                                                              ')
         end
-        write('      default:                                                                      ')
-        write('        break;                                                                      ')
-        write('    }                                                                               ')
-        write('  }                                                                                 ')
-        write('}                                                                                   ')
+        write('      default:                                                                                ')
+        write('        break;                                                                                ')
+        write('    }                                                                                         ')
+        write('  }                                                                                           ')
+        write('}                                                                                             ')
+        write('')
       end
     end
 
-    write('bool operator==(const '.. struct ..' &lhs, const '.. struct ..' &rhs) { ')
-    write('  return lhs.equals(rhs);                                               ')
-    write('}                                                                       ')
+    write('inline bool operator==(const '.. struct ..' &lhs, const '.. struct ..' &rhs) { ')
+    write('  return lhs.equals(rhs);                                                      ')
+    write('}                                                                              ')
     write('')
-    write('bool operator!=(const '.. struct ..' &lhs, const '.. struct ..' &rhs) { ')
-    write('  return !lhs.equals(rhs);                                              ')
-    write('}                                                                       ')
+    write('inline bool operator!=(const '.. struct ..' &lhs, const '.. struct ..' &rhs) { ')
+    write('  return !lhs.equals(rhs);                                                     ')
+    write('}                                                                              ')
 
     write('')
     write('///////////////////////////////////////////////////////////////////')
@@ -263,8 +265,8 @@ function execute()
     write('  s.begin();                                                       ')
     for i=1,#fields do
       local name = fields[i][1]
-      write('  s.key("'.. name ..'");                                       ')
-      write('  serialize(o.'.. name ..', s);                                ')
+      write('  s.key("'.. name ..'");                                         ')
+      write('  serialize(o.'.. name ..', s);                                  ')
     end
     write('  s.end();                                                         ')
     write('}                                                                  ')
@@ -279,7 +281,9 @@ function execute()
     write('    switch (s.hash_key()) {                                        ')
     for i=1,#fields do
       local name = fields[i][1]
-      write('      case ros::hash("' .. name ..'"): deserialize(o.' .. name ..', s); break; ')
+      write('      case ros::hash("' .. name ..'"):                           ')
+      write('        deserialize(o.' .. name ..', s);                         ')
+      write('        break;                                                   ')
     end
     write('      default: s.skip_key(); break;                                ')
     write('    }                                                              ')

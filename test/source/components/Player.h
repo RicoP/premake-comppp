@@ -25,15 +25,16 @@ struct Player {
   }
 };
 
-Player::State operator|(Player::State lhs, Player::State rhs) {
-  return static_cast<Player::State>(static_cast<long long>(lhs) | static_cast<long long>(rhs));
+inline Player::State operator|(Player::State lhs, Player::State rhs) {
+  return (Player::State)((long long)(lhs) | (long long)(rhs));
 }
-Player::State operator|=(Player::State & lhs, Player::State rhs)  { return lhs = lhs | rhs; }
 
-Player::State operator&(Player::State lhs, Player::State rhs) {
-  return static_cast<Player::State>(static_cast<long long>(lhs) & static_cast<long long>(rhs));
+inline Player::State operator&(Player::State lhs, Player::State rhs) {
+  return (Player::State)((long long)(lhs) & (long long)(rhs));
 }
-Player::State operator&=(Player::State & lhs, Player::State rhs) { return lhs = lhs & rhs; }
+
+inline Player::State operator&=(Player::State & lhs, Player::State rhs) { return lhs = lhs & rhs; }
+inline Player::State operator|=(Player::State & lhs, Player::State rhs) { return lhs = lhs | rhs; }
 
 inline void serialize(Player::State &o, ISerializer &s) {
   if ((o & Player::State::Active) != Player::State::None) s.write_enum("Active");
@@ -56,11 +57,12 @@ inline void deserialize(Player::State &o, IDeserializer &d) {
     }
   }
 }
-bool operator==(const Player &lhs, const Player &rhs) {
+
+inline bool operator==(const Player &lhs, const Player &rhs) {
   return lhs.equals(rhs);
 }
 
-bool operator!=(const Player &lhs, const Player &rhs) {
+inline bool operator!=(const Player &lhs, const Player &rhs) {
   return !lhs.equals(rhs);
 }
 
@@ -83,8 +85,12 @@ inline void deserialize(Player &o, IDeserializer &s) {
   o.setDefaultValues();
   while (s.next_key()) {
     switch (s.hash_key()) {
-      case ros::hash("position"): deserialize(o.position, s); break;
-      case ros::hash("state"): deserialize(o.state, s); break;
+      case ros::hash("position"):
+        deserialize(o.position, s);
+        break;
+      case ros::hash("state"):
+        deserialize(o.state, s);
+        break;
       default: s.skip_key(); break;
     }
   }

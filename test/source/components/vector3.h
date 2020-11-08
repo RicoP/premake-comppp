@@ -22,11 +22,11 @@ struct vector3 {
   }
 };
 
-bool operator==(const vector3 &lhs, const vector3 &rhs) {
+inline bool operator==(const vector3 &lhs, const vector3 &rhs) {
   return lhs.equals(rhs);
 }
 
-bool operator!=(const vector3 &lhs, const vector3 &rhs) {
+inline bool operator!=(const vector3 &lhs, const vector3 &rhs) {
   return !lhs.equals(rhs);
 }
 
@@ -51,9 +51,15 @@ inline void deserialize(vector3 &o, IDeserializer &s) {
   o.setDefaultValues();
   while (s.next_key()) {
     switch (s.hash_key()) {
-      case ros::hash("x"): deserialize(o.x, s); break;
-      case ros::hash("y"): deserialize(o.y, s); break;
-      case ros::hash("z"): deserialize(o.z, s); break;
+      case ros::hash("x"):
+        deserialize(o.x, s);
+        break;
+      case ros::hash("y"):
+        deserialize(o.y, s);
+        break;
+      case ros::hash("z"):
+        deserialize(o.z, s);
+        break;
       default: s.skip_key(); break;
     }
   }
