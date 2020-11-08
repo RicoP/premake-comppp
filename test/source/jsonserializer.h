@@ -19,6 +19,61 @@ struct JsonSerializer : public ISerializer {
   void put(          int i) { printf("%d", i);                                }
   void print_indent()       { put("\n", whitespace + 128 - indent_depth * 2); }
 
+  bool is_ascii(char c) {
+    switch(c) {
+    case '!': case '#': case '$': case '%': case '&': case '\'': case '(': case ')': case '~':
+    case '*': case '+': case ',': case '-': case '.': case '0': case '1': case '2': case '3':
+    case '4': case '5': case '6': case '7': case '8': case '9': case ':': case ';': case '<':
+    case '=': case '>': case '?': case '@': case '[': case ']': case '^': case '_': case '`':
+    case 'a': case 'A': case 'b': case 'B': case 'c': case 'C': case 'd': case 'D': case 'e':
+    case 'E': case 'f': case 'F': case 'g': case 'G': case 'h': case 'H': case 'i': case 'I':
+    case 'J': case 'j': case 'k': case 'K': case 'l': case 'L': case 'm': case 'M': case 'n':
+    case 'N': case 'O': case 'o': case 'p': case 'P': case 'Q': case 'q': case 'r': case 'R':
+    case 's': case 'S': case 't': case 'T': case 'u': case 'U': case 'V': case 'v': case 'w':
+    case 'W': case 'x': case 'X': case 'y': case 'Y': case 'z': case 'Z': case '{': case '|': case '}':
+        return true;
+    default:
+    case '"': case '/': case '\\':
+        return false;
+    }
+  }
+
+  void print_zeros(size_t leading_zeros) {
+    if (leading_zeros) {
+      for (size_t i = leading_zeros; i != 0; --i) {
+        put("\\u0000");
+      }
+    }
+  }
+
+  void decode_string(const char * s, const char * end) {
+      size_t leading_zeros = 0;
+      for(;s != end; ++s) {
+        char c = *s;
+
+        if(c == 0) { leading_zeros++; continue; }
+
+        print_zeros(leading_zeros);
+        leading_zeros = 0;
+
+        if(is_ascii(c)) put(c);
+        else {
+            switch(c) {
+                case '\n': put("\\n"); break;
+                case '\r': put("\\r"); break;
+                case '\\': put("\\\\"); break;
+                case '\/': put("\\\/"); break;
+                case '\b': put("\\b"); break;
+                case '\f': put("\\f"); break;
+                case '\t': put("\\t"); break;
+                default:
+                    printf("\\u00%02X", c); break;
+            }
+        }
+      }
+      //print_zeros(leading_zeros);
+  }
+
   char queue()              { return queued[indent_depth];                    }
   void clear()              { queued[indent_depth] = 0;                       }
   void indent()             { ++indent_depth;                                 }
@@ -36,8 +91,11 @@ struct JsonSerializer : public ISerializer {
   virtual void end_array()               override {                  unindent();                  put("]");                          }
   virtual void write_enum(const char* e) override { if(queue() == 0) put("\"");  queue_char('|'); put(e);                            }
   virtual void end_enum()                override {                                               put("\"");                clear(); }
+
   virtual void do_float(float f)         override { queue_char(',');                              put(f);                            }
   virtual void do_int(int i)             override { queue_char(',');                              put(i);                            }
+
+  virtual void do_string(char* begin, char* end) override { put("\""); decode_string(begin, end); put("\""); }
 };
 
 struct JsonDeserializer : public IDeserializer {
@@ -154,6 +212,52 @@ struct JsonDeserializer : public IDeserializer {
       return false;
     }
     return true;
+  }
+
+  virtual void do_string(char* s, char* end) {
+    trim();
+    expect('\"');
+    char hex[3] = {0};
+
+    for(;s != end; ++s) {
+        char c = *_p;
+        if (c == '\"') {
+            expect('\"');
+            break;
+        }
+        else if(c == '\\') {
+            _p++;
+            c = *_p;
+            switch(c) {
+                case '\\': *s++ = '\\'; break;
+                case '\/': *s++ = '\/'; break;
+                case 'n':  *s++ = '\n'; break;
+                case 'r':  *s++ =  '\r'; break;
+                case 'b':  *s++ = '\b'; break;
+                case 'f':  *s++ = '\f'; break;
+                case 't':  *s++ = '\t'; break;
+                case 'u':
+                    expect('0');
+                    expect('0');
+                    _p++;
+                    assert(*_p);
+                    hex[0] = *(_p); /*TODO check range*/
+                    _p++;
+                    assert(*_p);
+                    hex[1] = *(_p); /*TODO check range*/
+                    _p++;
+                    *s = (char)strtol(hex, NULL, 16);
+            }
+        } else {
+            *s = *_p;
+        }
+
+        _p++;
+    }
+
+    for (; s != end; ++s) {
+        *s = 0;
+    }
   }
 
   virtual void do_float(float& f) override {

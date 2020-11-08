@@ -72,6 +72,19 @@ inline hash_value hash(float v) { return internal::hash_simple(v); }
 inline hash_value hash(wchar_t v) { return internal::hash_simple(v); }
 }  // namespace ros
 
+namespace ros
+{
+  template<size_t N>
+  struct string {
+    char data[N];
+  };
+}
+
+template <size_t N, size_t M>
+inline bool operator==(const ros::string<N> &lhs, const ros::string<M> &rhs) {
+  return strcmp(lhs.data, rhs.data) == 0;
+}
+
 class IDeserializer {
  public:
   typedef ros::hash_value hash;
@@ -84,6 +97,7 @@ class IDeserializer {
 
   virtual bool in_enum() = 0;
 
+  virtual void do_string(char *begin, char *end) = 0;
   virtual void do_float(float &) = 0;
   virtual void do_int(int &) = 0;
   //virtual void do_long(long long &) = 0;
@@ -102,6 +116,7 @@ class ISerializer {
   virtual void write_enum(const char *) = 0;
   virtual void end_enum() = 0;
 
+  virtual void do_string(char* begin, char* end) = 0;
   virtual void do_float(float) = 0;
   virtual void do_int(int) = 0;
   //virtual void do_long(long long) = 0;
@@ -121,6 +136,11 @@ struct array {
     }
     return true;
   }
+
+  template<size_t N>
+  hash_value hash(ros::string<N> &s) {
+    return ros::hash_fnv(o.data, o.data + N);
+  }
 };
 
 template <size_t N, class T>
@@ -130,6 +150,10 @@ inline hash_value hash(const array<N, T> &v);
 //inline void serialize(long long &i, ISerializer &s) { s.do_long(i); }
 //inline void deserialize(long long &i, IDeserializer &d) { d.do_long(i); }
 
+template <size_t N>
+inline void serialize(ros::string<N> &o, ISerializer &s) { s.do_string(o.data, o.data + N); }
+template <size_t N>
+inline void deserialize(ros::string<N> &o, IDeserializer &d) { d.do_string(o.data, o.data + N); }
 
 inline void serialize(int &i, ISerializer &s) { s.do_int(i); }
 inline void deserialize(int &i, IDeserializer &d) { d.do_int(i); }

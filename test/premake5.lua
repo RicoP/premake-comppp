@@ -22,6 +22,7 @@ project "MyProject"
 	}
 	component.new "World"
 	component.add {
+		title="string(64)",
 		player="Player[4]",
 		scores="float[4]"
 	}

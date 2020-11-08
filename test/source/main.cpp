@@ -33,6 +33,8 @@ int main() {
   w.scores.values[3] = 3.14f;
   w.scores.size = 4;
 
+  strcpy(w.title.data, "Hello");
+
   serialize(w, jsons);
   puts("");
 
@@ -102,7 +104,8 @@ int main() {
   TEST(R"("   Active   |    Jumping    ")", Player::State::Active | Player::State::Jumping);
   TEST(R"("   Active   |Jumping    ")", Player::State::Active | Player::State::Jumping);
 
-  char* doc = R"({
+  char* doc = R"(
+        {
           "player" : [{
               "position" : {
                 "x" : 1,
@@ -132,14 +135,15 @@ int main() {
               },
               "state" : "Active|Jumping"
             }],
-          "scores" : [1, 1.3, 42, 3.14]
+          "scores" : [1, 1.3, 42, 3.14],
+          "title" : "Hello"
         })";
 
   TEST(doc, w);
 
   char* doc2 =
       R"({"player":[{"position":{"x":1,"y":2,"z":3},"state":"Active"},{"position":{"x":10,"y":11,"z":12},"state":"Active"},{"position":{"x":1,"y":2,"z":3},"state":"Active"},
-                  {"position":{"x":10,"y":11,"z":12},"state":"Active|Jumping"}],"scores":[1,1.3,42,3.14]})";
+                  {"position":{"x":10,"y":11,"z":12},"state":"Active|Jumping"}],"scores":[1,1.3,42,3.14],"title":"Hello"})";
 
   TEST(doc2, w);
 
@@ -179,6 +183,7 @@ int main() {
           "state" : "Active|Jumping"
         }
       ],
+      "title" : "Hello",
       "scores": [
         1,
         1.3,

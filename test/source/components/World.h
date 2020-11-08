@@ -5,6 +5,7 @@
 #include "serializer.h"
 
 struct World {
+  ros::string<1024> title;
   ros::array<4, Player> player;
   ros::array<4, float> scores;
 
@@ -17,6 +18,7 @@ struct World {
   bool equals(const World & rhs) const {
     return
       player == rhs.player &&
+      title == rhs.title &&
       scores == rhs.scores;
   }
 };
@@ -38,6 +40,8 @@ inline void serialize(World &o, ISerializer &s) {
   serialize(o.player, s);
   s.key("scores");
   serialize(o.scores, s);
+  s.key("title");
+  serialize(o.title, s);
   s.end();
 }
 
@@ -54,7 +58,12 @@ inline void deserialize(World &o, IDeserializer &s) {
       case ros::hash("scores"):
         deserialize(o.scores, s);
         break;
-      default: s.skip_key(); break;
+      case ros::hash("title"):
+        deserialize(o.title, s);
+        break;
+      default:
+        s.skip_key();
+        break;
     }
   }
 }
