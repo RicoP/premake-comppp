@@ -18,7 +18,7 @@ project "MyProject"
 	component.new "Player"
 	component.add {
 		position="vector3",
-		state="int",
+		state="Active|Jumping",
 	}
 	component.new "World"
 	component.add {
