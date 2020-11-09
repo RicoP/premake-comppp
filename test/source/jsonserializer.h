@@ -7,16 +7,18 @@ struct JsonSerializer : public ISerializer {
   char queued[MAX_DEPTH] = {0};
   char whitespace[MAX_DEPTH * 2 + 1] = {0};
   int indent_depth = 0;
+  FILE* file = stdout;
 
   JsonSerializer() { std::memset(whitespace, ' ', MAX_DEPTH * 2); }
+  JsonSerializer(FILE* file_) : file(file_) { std::memset(whitespace, ' ', MAX_DEPTH * 2); }
 
   template <class T, class... Ts>
   void put(T a, Ts... bcd)  { put(a); put(bcd...);                            }
-  void put(const char* str) { printf("%s", str);                              }
-  void put(      char* str) { printf("%s", str);                              }
-  void put(        float f) { printf("%g", f);                                }
-  void put(         char c) { printf("%c", c);                                }
-  void put(          int i) { printf("%d", i);                                }
+  void put(const char* str) { fprintf(file, "%s", str);                       }
+  void put(      char* str) { fprintf(file, "%s", str);                       }
+  void put(        float f) { fprintf(file, "%g", f);                         }
+  void put(         char c) { fprintf(file, "%c", c);                         }
+  void put(          int i) { fprintf(file, "%d", i);                         }
   void print_indent()       { put("\n", whitespace + 128 - indent_depth * 2); }
 
   bool is_ascii(char c) {
@@ -93,6 +95,7 @@ struct JsonSerializer : public ISerializer {
   virtual void end_enum()                override {                                               put("\"");                clear(); }
 
   virtual void do_float(float f)         override { queue_char(',');                              put(f);                            }
+  virtual void do_bool(bool b)           override { queue_char(',');                              put(b?"true":"false");             }
   virtual void do_int(int i)             override { queue_char(',');                              put(i);                            }
 
   virtual void do_string(char* begin, char* end) override { put("\""); decode_string(begin, end); put("\""); }
@@ -257,6 +260,24 @@ struct JsonDeserializer : public IDeserializer {
 
     for (; s != end; ++s) {
         *s = 0;
+    }
+  }
+
+  virtual void do_bool(bool& b) override {
+    char c = current();
+
+    if(c == 't') {
+      expect('r'); expect('u'); expect('e');
+      b = true;
+    } else if(c == 'f') {
+      expect('a'); expect('l'); expect('s'); expect('e');
+      b = false;
+    } else {
+      std::cerr << "Error: expected '"
+                << "true or false"
+                << "' but got "
+                << c
+                << ".\n";
     }
   }
 

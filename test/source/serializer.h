@@ -101,6 +101,7 @@ class IDeserializer {
   virtual bool in_enum() = 0;
 
   virtual void do_string(char *begin, char *end) = 0;
+  virtual void do_bool(bool &) = 0;
   virtual void do_float(float &) = 0;
   virtual void do_int(int &) = 0;
   //virtual void do_long(long long &) = 0;
@@ -120,6 +121,7 @@ class ISerializer {
   virtual void end_enum() = 0;
 
   virtual void do_string(char* begin, char* end) = 0;
+  virtual void do_bool(bool) = 0;
   virtual void do_float(float) = 0;
   virtual void do_int(int) = 0;
   //virtual void do_long(long long) = 0;
@@ -157,6 +159,9 @@ template <size_t N>
 inline void serialize(ros::string<N> &o, ISerializer &s) { s.do_string(o.data, o.data + N); }
 template <size_t N>
 inline void deserialize(ros::string<N> &o, IDeserializer &d) { d.do_string(o.data, o.data + N); }
+
+inline void serialize(bool &b, ISerializer &s) { s.do_bool(b); }
+inline void deserialize(bool &b, IDeserializer &d) { d.do_bool(b); }
 
 inline void serialize(int &i, ISerializer &s) { s.do_int(i); }
 inline void deserialize(int &i, IDeserializer &d) { d.do_int(i); }
