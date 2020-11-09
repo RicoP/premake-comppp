@@ -1,13 +1,70 @@
 #include <cassert>
 
+#include "components/vector2.h"
 #include "components/vector3.h"
+#include "components/quaternion.h"
+#include "components/matrix4.h"
+
+inline vector2 vector(float x, float y) {
+  vector2 v = {x, y};
+  return v;
+}
+
+inline vector3 vector(float x, float y, float z) {
+  vector3 v = {x, y, z};
+  return v;
+}
+
+inline matrix4 identity4() {
+    matrix4 m;
+    std::memset(&m, 0, sizeof(matrix4));
+    m.m00 = 1;
+    m.m11 = 1;
+    m.m22 = 1;
+    m.m33 = 1;
+    return m;
+}
+
+inline quaternion qidentity() {
+  quaternion q;
+  q.x = 0;
+  q.y = 0;
+  q.z = 0;
+  q.w = 1;
+  return q;
+}
+
+#include "components/objectid.h"
+
+inline ObjectID idgen() {
+  static int id = 1;
+  ObjectID o = {id++};
+  return o;
+}
+
+#include "components/soundassetref.h"
+#include "components/meshassetref.h"
+#include "components/textureassetref.h"
+#include "components/shaderassetref.h"
+#include "components/collider.h"
+
 #include "components/player.h"
 #include "components/world.h"
+
+#include "components/transform.h"
+#include "components/sceneobject.h"
+#include "components/camera.h"
+#include "components/skybox.h"
+#include "components/collider.h"
+#include "components/sceneObject.h"
+#include "components/hero.h"
+#include "components/scene.h"
 
 #include "jsonserializer.h"
 
 int main() {
-  JsonSerializer jsons;
+  FILE* f = fopen("foo.json", "w");
+  JsonSerializer jsons(f);
   vector3 v = {1, 2, 3};
 
   Player p1;
@@ -36,7 +93,77 @@ int main() {
   strcpy(w.title.data, "Hello");
 
   serialize(w, jsons);
-  puts("");
+  fclose(f);
+
+  // Test serializer in out for World
+  {
+    char* buffer = 0;
+    long length;
+    FILE* f = fopen("foo.json", "rb");
+
+    assert(f);
+
+    fseek(f, 0, SEEK_END);
+    length = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    buffer = (char*)std::malloc(length);
+    if (buffer) {
+      fread(buffer, 1, length, f);
+      buffer[length] = 0;
+    }
+    fclose(f);
+
+    World w2;
+    JsonDeserializer jsond(buffer);
+    deserialize(w2, jsond);
+
+    assert(w == w2);
+
+    std::free(buffer);
+    buffer = 0;
+    puts("");
+  }
+
+  // Test serializer in out for Scene
+  {
+    Scene s1;
+    s1.setDefaultValues();
+    s1.objects.size = 1;
+    auto & o = s1.objects.values[0];
+    o.setDefaultValues();
+
+    FILE* f = fopen("scene.json", "w");
+    JsonSerializer jsons(f);
+
+    serialize(s1, jsons);
+    fclose(f);
+
+    char* buffer = 0;
+    long length;
+    f = fopen("scene.json", "rb");
+
+    assert(f);
+
+    fseek(f, 0, SEEK_END);
+    length = ftell(f)+1;
+    fseek(f, 0, SEEK_SET);
+    buffer = (char*)std::malloc(length);
+    if (buffer) {
+      fread(buffer, 1, length-1, f);
+      buffer[length-1] = 0;
+    }
+    fclose(f);
+
+    Scene s2;
+    JsonDeserializer jsond(buffer);
+    deserialize(s2, jsond);
+
+    assert(s1 == s2);
+
+    std::free(buffer);
+    buffer = 0;
+    puts("");
+  }
 
 #define TEST(STR, VAL)           \
   do {                           \
