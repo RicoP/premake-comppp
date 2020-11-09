@@ -1,3 +1,5 @@
+local tsort = require "tsort"
+
 local m = {}
 
 m._VERSION = "0.1" -- dev version
@@ -143,6 +145,9 @@ assert(string_type("string(3)") == 3)
 assert(string_type("string(1024)") == 1024)
 
 function execute()
+  assert(components.component == nil, "Can't have a component called component")
+  assert(components.components == nil, "Can't have a component called components")
+
   for struct, fieldsUnsorted in pairs(components) do
     local path = state.dir .. "/" .. struct:lower() .. ".h"
     print(struct .. " -> " .. path)
@@ -164,6 +169,8 @@ function execute()
       table.insert(fields, e)
     end
 
+    components[struct] = fields
+
     table.sort(fields, function (left, right)
         --TODO: sort not only by name but first by type size
         return left[1] < right[1]
@@ -184,8 +191,8 @@ function execute()
       if enum(valtype) then
         write('  enum class ' .. firstToUpper(name) .. ' : long long {                        ')
         write('    None = 0,                                                                  ')
-        local myTable = valtype:split("|")
-        for i,v in pairs(myTable) do
+        local enum_member = valtype:split("|")
+        for i,v in pairs(enum_member) do
           write('    '.. v ..' = 1 << ' .. i-1 .. ',                                          ')
         end
         write('  };                                                                           ')
@@ -260,19 +267,20 @@ function execute()
         write('inline ' .. E .. ' operator|=(' .. E .. ' & lhs, ' .. E .. ' rhs) { return lhs = lhs | rhs; } ')
         write('                                                                                              ')
         write('inline void serialize(' .. E .. ' &o, ISerializer &s) {                                       ')
-        local myTable = valtype:split("|")
-        for i,v in pairs(myTable) do
+        local enum_member = valtype:split("|")
+        for i,v in pairs(enum_member) do
           write('  if ((o & ' .. E .. '::' .. v .. ') != ' .. E .. '::None) s.write_enum("' .. v .. '");     ')
         end
 
         write('  s.end_enum();                                                                               ')
         write('}                                                                                             ')
         write('                                                                                              ')
+
         write('inline void deserialize(' .. E .. ' &o, IDeserializer &d) {                                   ')
         write('  o = ' .. E .. '::None;                                                                      ')
         write('  while (d.in_enum()) {                                                                       ')
         write('    switch (d.hash_key()) {                                                                   ')
-        for i,v in pairs(myTable) do
+        for i,v in pairs(enum_member) do
           write('      case ros::hash("' .. v .. '"):                                                        ')
           write('        o |= ' .. E .. '::' .. v .. ';                                                      ')
           write('        break;                                                                              ')
@@ -283,6 +291,18 @@ function execute()
         write('  }                                                                                           ')
         write('}                                                                                             ')
         write('')
+
+        write('inline void randomize(' .. E .. ' &o, ros::hash_value & h) {                                                       ')
+        write('  h = ros::xor64(h); ')
+        write('  o = ' .. E .. '::None;                                                                      ')
+        write('  switch(h % ' .. #enum_member .. ') {                                                        ')
+        for i,v in pairs(enum_member) do
+          write('    case ' .. (i-1) .. ': o = ' .. E .. '::' .. v .. '; break;                              ')
+        end
+        write('  }                                                                                           ')
+        write('}                                                                                             ')
+        write('')
+
       end
     end
 
@@ -355,7 +375,44 @@ function execute()
     write('  }                                                                ')
     write('}                                                                  ')
 
+    write('')
+    write('///////////////////////////////////////////////////////////////////')
+    write('// randomize                                                     //')
+    write('///////////////////////////////////////////////////////////////////')
+    write('inline void randomize('.. struct ..' &o, ros::hash_value & h) {    ')
+    for i,field in pairs(fields) do
+      local name = field[1]
+      write('  randomize(o.'.. name ..', h);                                  ')
+    end
+    write('}                                                                  ')
+
     file:close()
+  end
+
+  local graph = tsort.new()
+  for struct, fields in pairs(components) do
+    --print(struct)
+    for _,compA in pairs(fields) do
+      --print("  ", dump(compA))
+      local comp = vtype(compA[2])
+      local is_component = components[comp] ~= nil
+      if is_component then
+        --print(struct, "->", comp)
+        graph:add(comp, struct)
+      end
+    end
+  end
+  --print(dump(graph:sort()))
+  local path = state.dir .. "/components.h"
+  file = io.open(path, "w")
+  write('///////////////////////////////////////////////////////////////////')
+  write('// AUTOGENERATED                                                 //')
+  write('///////////////////////////////////////////////////////////////////')
+  write('')
+  write('#pragma once')
+  write('')
+  for _,struct in pairs(graph:sort()) do
+    write('#include "components/' .. struct:lower() .. '.h"                 ')
   end
 end
 

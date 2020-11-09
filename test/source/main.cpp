@@ -42,24 +42,7 @@ inline ObjectID idgen() {
   return o;
 }
 
-#include "components/soundassetref.h"
-#include "components/meshassetref.h"
-#include "components/textureassetref.h"
-#include "components/shaderassetref.h"
-#include "components/collider.h"
-
-#include "components/player.h"
-#include "components/world.h"
-
-#include "components/transform.h"
-#include "components/sceneobject.h"
-#include "components/camera.h"
-#include "components/skybox.h"
-#include "components/collider.h"
-#include "components/sceneObject.h"
-#include "components/hero.h"
-#include "components/scene.h"
-
+#include "components/components.h"
 #include "jsonserializer.h"
 
 int main() {
