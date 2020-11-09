@@ -60,3 +60,10 @@ namespace ros {
     return h;
   }
 }
+
+///////////////////////////////////////////////////////////////////
+// randomize                                                     //
+///////////////////////////////////////////////////////////////////
+inline void randomize(Skybox &o, ros::hash_value & h) {
+  randomize(o.object, h);
+}

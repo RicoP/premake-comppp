@@ -10,6 +10,7 @@ struct Scene {
   Hero hero;
   ros::array<1024, SceneObject> objects;
   Skybox skybox;
+  ros::string<256> title;
 
   void setDefaultValues() {
     std::memset(this, 0, sizeof(Scene));
@@ -26,7 +27,8 @@ struct Scene {
       cameras == rhs.cameras &&
       hero == rhs.hero &&
       objects == rhs.objects &&
-      skybox == rhs.skybox;
+      skybox == rhs.skybox &&
+      title == rhs.title;
   }
 };
 
@@ -53,6 +55,8 @@ inline void serialize(Scene &o, ISerializer &s) {
   serialize(o.objects, s);
   s.key("skybox");
   serialize(o.skybox, s);
+  s.key("title");
+  serialize(o.title, s);
   s.end();
 }
 
@@ -78,6 +82,9 @@ inline void deserialize(Scene &o, IDeserializer &s) {
       case ros::hash("skybox"):
         deserialize(o.skybox, s);
         break;
+      case ros::hash("title"):
+        deserialize(o.title, s);
+        break;
       default: s.skip_key(); break;
     }
   }
@@ -97,6 +104,20 @@ namespace ros {
     h ^= ros::hash(o.objects);
     h = ros::xor64(h);
     h ^= ros::hash(o.skybox);
+    h = ros::xor64(h);
+    h ^= ros::hash(o.title);
     return h;
   }
+}
+
+///////////////////////////////////////////////////////////////////
+// randomize                                                     //
+///////////////////////////////////////////////////////////////////
+inline void randomize(Scene &o, ros::hash_value & h) {
+  randomize(o.activeCamera, h);
+  randomize(o.cameras, h);
+  randomize(o.hero, h);
+  randomize(o.objects, h);
+  randomize(o.skybox, h);
+  randomize(o.title, h);
 }

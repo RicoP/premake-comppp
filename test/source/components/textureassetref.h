@@ -59,3 +59,10 @@ namespace ros {
     return h;
   }
 }
+
+///////////////////////////////////////////////////////////////////
+// randomize                                                     //
+///////////////////////////////////////////////////////////////////
+inline void randomize(TextureAssetRef &o, ros::hash_value & h) {
+  randomize(o.id, h);
+}

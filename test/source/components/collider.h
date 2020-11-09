@@ -89,3 +89,13 @@ namespace ros {
     return h;
   }
 }
+
+///////////////////////////////////////////////////////////////////
+// randomize                                                     //
+///////////////////////////////////////////////////////////////////
+inline void randomize(Collider &o, ros::hash_value & h) {
+  randomize(o.active, h);
+  randomize(o.intersections, h);
+  randomize(o.pivot, h);
+  randomize(o.scale, h);
+}

@@ -86,3 +86,13 @@ namespace ros {
     return h;
   }
 }
+
+///////////////////////////////////////////////////////////////////
+// randomize                                                     //
+///////////////////////////////////////////////////////////////////
+inline void randomize(quaternion &o, ros::hash_value & h) {
+  randomize(o.w, h);
+  randomize(o.x, h);
+  randomize(o.y, h);
+  randomize(o.z, h);
+}

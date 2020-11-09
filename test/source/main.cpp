@@ -128,9 +128,8 @@ int main() {
   {
     Scene s1;
     s1.setDefaultValues();
-    s1.objects.size = 1;
-    auto & o = s1.objects.values[0];
-    o.setDefaultValues();
+    ros::hash_value h = ros::hash("HELLO WORLD");
+    randomize(s1, h);
 
     FILE* f = fopen("scene.json", "w");
     JsonSerializer jsons(f);
@@ -230,6 +229,12 @@ int main() {
   TEST(R"("   Active|Jumping    ")", Player::State::Active | Player::State::Jumping);
   TEST(R"("   Active   |    Jumping    ")", Player::State::Active | Player::State::Jumping);
   TEST(R"("   Active   |Jumping    ")", Player::State::Active | Player::State::Jumping);
+
+  ros::string<16> str;
+  strcpy(str.data, "Hello World");
+
+  TEST(R"("Hello World")", str);
+
 
   char* doc = R"(
         {

@@ -100,3 +100,14 @@ namespace ros {
     return h;
   }
 }
+
+///////////////////////////////////////////////////////////////////
+// randomize                                                     //
+///////////////////////////////////////////////////////////////////
+inline void randomize(Camera &o, ros::hash_value & h) {
+  randomize(o.far_plane, h);
+  randomize(o.fov, h);
+  randomize(o.lookat, h);
+  randomize(o.near_plane, h);
+  randomize(o.projection, h);
+}

@@ -32,7 +32,8 @@ struct JsonSerializer : public ISerializer {
     case 'J': case 'j': case 'k': case 'K': case 'l': case 'L': case 'm': case 'M': case 'n':
     case 'N': case 'O': case 'o': case 'p': case 'P': case 'Q': case 'q': case 'r': case 'R':
     case 's': case 'S': case 't': case 'T': case 'u': case 'U': case 'V': case 'v': case 'w':
-    case 'W': case 'x': case 'X': case 'y': case 'Y': case 'z': case 'Z': case '{': case '|': case '}':
+    case 'W': case 'x': case 'X': case 'y': case 'Y': case 'z': case 'Z': case '{': case '|': 
+    case '}': case ' ':
         return true;
     default:
     case '"': case '/': case '\\':
@@ -267,10 +268,10 @@ struct JsonDeserializer : public IDeserializer {
     char c = current();
 
     if(c == 't') {
-      expect('r'); expect('u'); expect('e');
+      expect('t'); expect('r'); expect('u'); expect('e');
       b = true;
     } else if(c == 'f') {
-      expect('a'); expect('l'); expect('s'); expect('e');
+      expect('f'); expect('a'); expect('l'); expect('s'); expect('e');
       b = false;
     } else {
       std::cerr << "Error: expected '"

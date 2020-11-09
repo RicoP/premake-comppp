@@ -52,6 +52,25 @@ inline hash_value hash_simple(T value) {
 }
 }  // namespace internal
 
+constexpr void next(hash_value &h) { h = xor64(h); }
+
+inline float nextf(hash_value &h) {
+  next(h);
+
+  union {
+    hash_value u_x;
+    float u_f;
+  };
+
+  // Manipulate the exponent and fraction of the floating point number
+  // in a way, that we get a number from 1 (inlcusive) and 2 (exclusive).
+  u_x = h;
+  u_x &= 0x007FFFFF007FFFFF;
+  u_x |= 0x3F8000003F800000;
+
+  return u_f - 1.0f;
+}
+
 constexpr hash_value hash(unsigned char v) { return v; }
 constexpr hash_value hash(unsigned int v) { return v; }
 constexpr hash_value hash(unsigned long int v) { return v; }
@@ -72,16 +91,17 @@ inline hash_value hash(float v) { return internal::hash_simple(v); }
 inline hash_value hash(wchar_t v) { return internal::hash_simple(v); }
 }  // namespace ros
 
-namespace ros
-{
-  template<size_t N>
-  struct string {
-    char data[N];
-  };
+namespace ros {
+template <size_t N>
+struct string {
+  char data[N];
+};
 
-  template<size_t N>
-  hash_value hash(string<N> s) { ros::hash_fnv(s.data, s.data+N); }
+template <size_t N>
+hash_value hash(string<N> s) {
+  ros::hash_fnv(s.data, s.data + N);
 }
+}  // namespace ros
 
 template <size_t N, size_t M>
 inline bool operator==(const ros::string<N> &lhs, const ros::string<M> &rhs) {
@@ -104,7 +124,7 @@ class IDeserializer {
   virtual void do_bool(bool &) = 0;
   virtual void do_float(float &) = 0;
   virtual void do_int(int &) = 0;
-  //virtual void do_long(long long &) = 0;
+  // virtual void do_long(long long &) = 0;
 };
 
 class ISerializer {
@@ -120,12 +140,11 @@ class ISerializer {
   virtual void write_enum(const char *) = 0;
   virtual void end_enum() = 0;
 
-  virtual void do_string(char* begin, char* end) = 0;
+  virtual void do_string(char *begin, char *end) = 0;
   virtual void do_bool(bool) = 0;
   virtual void do_float(float) = 0;
   virtual void do_int(int) = 0;
-  //virtual void do_long(long long) = 0;
-
+  // virtual void do_long(long long) = 0;
 };
 
 namespace ros {
@@ -142,7 +161,7 @@ struct array {
     return true;
   }
 
-  template<size_t N>
+  template <size_t N>
   hash_value hash(ros::string<N> &s) {
     return ros::hash_fnv(o.data, o.data + N);
   }
@@ -152,13 +171,17 @@ template <size_t N, class T>
 inline hash_value hash(const array<N, T> &v);
 }  // namespace ros
 
-//inline void serialize(long long &i, ISerializer &s) { s.do_long(i); }
-//inline void deserialize(long long &i, IDeserializer &d) { d.do_long(i); }
+// inline void serialize(long long &i, ISerializer &s) { s.do_long(i); }
+// inline void deserialize(long long &i, IDeserializer &d) { d.do_long(i); }
 
 template <size_t N>
-inline void serialize(ros::string<N> &o, ISerializer &s) { s.do_string(o.data, o.data + N); }
+inline void serialize(ros::string<N> &o, ISerializer &s) {
+  s.do_string(o.data, o.data + N);
+}
 template <size_t N>
-inline void deserialize(ros::string<N> &o, IDeserializer &d) { d.do_string(o.data, o.data + N); }
+inline void deserialize(ros::string<N> &o, IDeserializer &d) {
+  d.do_string(o.data, o.data + N);
+}
 
 inline void serialize(bool &b, ISerializer &s) { s.do_bool(b); }
 inline void deserialize(bool &b, IDeserializer &d) { d.do_bool(b); }
@@ -168,6 +191,45 @@ inline void deserialize(int &i, IDeserializer &d) { d.do_int(i); }
 
 inline void serialize(float &f, ISerializer &s) { s.do_float(f); }
 inline void deserialize(float &f, IDeserializer &d) { d.do_float(f); }
+
+inline void randomize(float &o, ros::hash_value &h) {
+  ros::next(h);
+  o = (((int)(h % 400)) - 200) * .5f;
+}
+
+inline void randomize(int &o, ros::hash_value &h) {
+  ros::next(h);
+  o = (int)(h % 100);
+}
+
+inline void randomize(bool &o, ros::hash_value &h) {
+  ros::next(h);
+  o = h % 2 == 0;
+}
+
+template <size_t N, class T>
+inline void randomize(ros::array<N, T> &o, ros::hash_value &h) {
+  ros::next(h);
+
+  size_t length = h % N;
+  o.size = length;
+  for (size_t i = 0; i != length; ++i) {
+    randomize(o.values[i], h);
+  }
+}
+
+template <size_t N>
+inline void randomize(ros::string<N> &o, ros::hash_value &h) {
+  ros::next(h);
+
+  std::memset(o.data, 0, N);
+
+  size_t length = h % N - 1;
+  for (size_t i = 0; i != length; ++i) {
+    ros::next(h);
+    o.data[i] = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"[h % 51];
+  }
+}
 
 template <size_t N, class T>
 inline void serialize(ros::array<N, T> &o, ISerializer &s) {

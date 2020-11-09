@@ -78,3 +78,12 @@ namespace ros {
     return h;
   }
 }
+
+///////////////////////////////////////////////////////////////////
+// randomize                                                     //
+///////////////////////////////////////////////////////////////////
+inline void randomize(vector3 &o, ros::hash_value & h) {
+  randomize(o.x, h);
+  randomize(o.y, h);
+  randomize(o.z, h);
+}

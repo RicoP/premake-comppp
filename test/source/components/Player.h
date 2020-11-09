@@ -58,6 +58,15 @@ inline void deserialize(Player::State &o, IDeserializer &d) {
   }
 }
 
+inline void randomize(Player::State &o, ros::hash_value & h) {
+  h = ros::xor64(h);
+  o = Player::State::None;
+  switch(h % 2) {
+    case 0: o = Player::State::Active; break;
+    case 1: o = Player::State::Jumping; break;
+  }
+}
+
 inline bool operator==(const Player &lhs, const Player &rhs) {
   return lhs.equals(rhs);
 }
@@ -106,4 +115,12 @@ namespace ros {
     h ^= ros::hash((long long)o.state);
     return h;
   }
+}
+
+///////////////////////////////////////////////////////////////////
+// randomize                                                     //
+///////////////////////////////////////////////////////////////////
+inline void randomize(Player &o, ros::hash_value & h) {
+  randomize(o.position, h);
+  randomize(o.state, h);
 }

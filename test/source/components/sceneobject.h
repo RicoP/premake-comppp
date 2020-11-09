@@ -100,3 +100,14 @@ namespace ros {
     return h;
   }
 }
+
+///////////////////////////////////////////////////////////////////
+// randomize                                                     //
+///////////////////////////////////////////////////////////////////
+inline void randomize(SceneObject &o, ros::hash_value & h) {
+  randomize(o.ID, h);
+  randomize(o.collider, h);
+  randomize(o.mesh, h);
+  randomize(o.texture, h);
+  randomize(o.transform, h);
+}

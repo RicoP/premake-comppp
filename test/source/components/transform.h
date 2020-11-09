@@ -90,3 +90,13 @@ namespace ros {
     return h;
   }
 }
+
+///////////////////////////////////////////////////////////////////
+// randomize                                                     //
+///////////////////////////////////////////////////////////////////
+inline void randomize(Transform &o, ros::hash_value & h) {
+  randomize(o.mvt, h);
+  randomize(o.position, h);
+  randomize(o.rotation, h);
+  randomize(o.scale, h);
+}

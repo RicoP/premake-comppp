@@ -79,3 +79,12 @@ namespace ros {
     return h;
   }
 }
+
+///////////////////////////////////////////////////////////////////
+// randomize                                                     //
+///////////////////////////////////////////////////////////////////
+inline void randomize(World &o, ros::hash_value & h) {
+  randomize(o.player, h);
+  randomize(o.scores, h);
+  randomize(o.title, h);
+}

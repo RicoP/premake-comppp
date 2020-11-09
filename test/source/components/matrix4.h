@@ -194,3 +194,25 @@ namespace ros {
     return h;
   }
 }
+
+///////////////////////////////////////////////////////////////////
+// randomize                                                     //
+///////////////////////////////////////////////////////////////////
+inline void randomize(matrix4 &o, ros::hash_value & h) {
+  randomize(o.m00, h);
+  randomize(o.m01, h);
+  randomize(o.m02, h);
+  randomize(o.m03, h);
+  randomize(o.m10, h);
+  randomize(o.m11, h);
+  randomize(o.m12, h);
+  randomize(o.m13, h);
+  randomize(o.m20, h);
+  randomize(o.m21, h);
+  randomize(o.m22, h);
+  randomize(o.m23, h);
+  randomize(o.m30, h);
+  randomize(o.m31, h);
+  randomize(o.m32, h);
+  randomize(o.m33, h);
+}

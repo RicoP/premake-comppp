@@ -116,6 +116,7 @@ project "MyProject"
 	}
 	component.new "Scene"
 	component.add {
+		title="string(256)",
 	  skybox= {"Skybox" },
 	  --TODO: make the game and editor cameras explicit
 	  cameras= {"Camera[16]" }, -- 0 = editor camera, 1 = main game camera, 2 = stealth camera, 3+ = side cameras

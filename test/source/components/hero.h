@@ -149,3 +149,19 @@ namespace ros {
     return h;
   }
 }
+
+///////////////////////////////////////////////////////////////////
+// randomize                                                     //
+///////////////////////////////////////////////////////////////////
+inline void randomize(Hero &o, ros::hash_value & h) {
+  randomize(o.cam_offset, h);
+  randomize(o.cam_speed, h);
+  randomize(o.heroRunSpeed, h);
+  randomize(o.heroWalkSpeed, h);
+  randomize(o.inputv, h);
+  randomize(o.jump, h);
+  randomize(o.jump_sound, h);
+  randomize(o.renderObject, h);
+  randomize(o.transform, h);
+  randomize(o.velocity, h);
+}
