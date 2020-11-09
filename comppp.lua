@@ -402,6 +402,7 @@ function execute()
       end
     end
   end
+  --print(dump(graph))
   --print(dump(graph:sort()))
   local path = state.dir .. "/components.h"
   file = io.open(path, "w")
