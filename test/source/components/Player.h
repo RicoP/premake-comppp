@@ -4,6 +4,7 @@
 #pragma once
 #include "serializer.h"
 
+#include "components/vector3.h"
 struct Player {
   vector3 position;
   enum class State : long long {
@@ -79,7 +80,7 @@ inline bool operator!=(const Player &lhs, const Player &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Player &o, ISerializer &s) {
-  s.begin();
+  s.begin("Player", ros::hash("Player"), &o);
   s.key("position");
   serialize(o.position, s);
   s.key("state");

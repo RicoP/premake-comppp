@@ -59,7 +59,7 @@ inline bool operator!=(const matrix4 &lhs, const matrix4 &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(matrix4 &o, ISerializer &s) {
-  s.begin();
+  s.begin("matrix4", ros::hash("matrix4"), &o);
   s.key("m00");
   serialize(o.m00, s);
   s.key("m01");

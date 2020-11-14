@@ -4,6 +4,8 @@
 #pragma once
 #include "serializer.h"
 
+#include "components/matrix4.h"
+#include "components/matrix4.h"
 struct Camera {
   float far_plane;
   float fov;
@@ -42,7 +44,7 @@ inline bool operator!=(const Camera &lhs, const Camera &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Camera &o, ISerializer &s) {
-  s.begin();
+  s.begin("Camera", ros::hash("Camera"), &o);
   s.key("far_plane");
   serialize(o.far_plane, s);
   s.key("fov");

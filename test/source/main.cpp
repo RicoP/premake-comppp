@@ -45,6 +45,9 @@ inline ObjectID idgen() {
 #include "components/components.h"
 #include "jsonserializer.h"
 
+constexpr const char* FG_GREEN = "\x1B[32m";
+constexpr const char* BG_BLACK = "\033[0m";
+
 int main() {
   FILE* f = fopen("foo.json", "w");
   JsonSerializer jsons(f);
@@ -310,6 +313,7 @@ int main() {
   TEST(doc3, w);
 
   puts("_______");
-  puts("All OK!");
+  printf("%s%s%s\n", FG_GREEN, "ALL OK!", BG_BLACK);
+
   return 0;
 }

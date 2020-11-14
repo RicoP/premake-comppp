@@ -29,7 +29,7 @@ inline bool operator!=(const TextureAssetRef &lhs, const TextureAssetRef &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(TextureAssetRef &o, ISerializer &s) {
-  s.begin();
+  s.begin("TextureAssetRef", ros::hash("TextureAssetRef"), &o);
   s.key("id");
   serialize(o.id, s);
   s.end();

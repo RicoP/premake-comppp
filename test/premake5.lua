@@ -1,13 +1,13 @@
 local component = require "comppp"
 
-workspace "MyWorkspace"
+workspace "Serializer"
 	location ".build/projects"
 	targetdir ".build/bin/%{cfg.buildcfg}"
 	configurations { "Debug", "Release" }
 	language "C++"
 	component.targetdir "source/components"
 
-project "MyProject"
+project "app.test"
 	kind "ConsoleApp"
 	component.new "vector2"
 	component.add {
@@ -125,6 +125,13 @@ project "MyProject"
 	  objects= {"SceneObject[1024]" },
 	}
 
-
 	files {"source/**"}
+	removefiles {"source/ui/**"}
 	component.generate()
+
+project "app.ui"
+	links { "d3d11" }
+	kind "ConsoleApp"
+	files {"source/**"}
+	includedirs { "source" }
+	removefiles {"source/main.cpp"}

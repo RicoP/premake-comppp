@@ -4,6 +4,9 @@
 #pragma once
 #include "serializer.h"
 
+#include "components/objectid.h"
+#include "components/vector3.h"
+#include "components/vector3.h"
 struct Collider {
   bool active;
   ros::array<16, ObjectID> intersections;
@@ -38,7 +41,7 @@ inline bool operator!=(const Collider &lhs, const Collider &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Collider &o, ISerializer &s) {
-  s.begin();
+  s.begin("Collider", ros::hash("Collider"), &o);
   s.key("active");
   serialize(o.active, s);
   s.key("intersections");

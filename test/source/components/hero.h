@@ -4,6 +4,13 @@
 #pragma once
 #include "serializer.h"
 
+#include "components/vector3.h"
+#include "components/vector2.h"
+#include "components/vector3.h"
+#include "components/soundassetref.h"
+#include "components/objectid.h"
+#include "components/transform.h"
+#include "components/vector3.h"
 struct Hero {
   vector3 cam_offset;
   vector2 cam_speed;
@@ -56,7 +63,7 @@ inline bool operator!=(const Hero &lhs, const Hero &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Hero &o, ISerializer &s) {
-  s.begin();
+  s.begin("Hero", ros::hash("Hero"), &o);
   s.key("cam_offset");
   serialize(o.cam_offset, s);
   s.key("cam_speed");

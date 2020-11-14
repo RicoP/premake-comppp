@@ -4,6 +4,7 @@
 #pragma once
 #include "serializer.h"
 
+#include "components/player.h"
 struct World {
   ros::array<4, Player> player;
   ros::array<4, float> scores;
@@ -35,7 +36,7 @@ inline bool operator!=(const World &lhs, const World &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(World &o, ISerializer &s) {
-  s.begin();
+  s.begin("World", ros::hash("World"), &o);
   s.key("player");
   serialize(o.player, s);
   s.key("scores");

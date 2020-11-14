@@ -4,6 +4,10 @@
 #pragma once
 #include "serializer.h"
 
+#include "components/matrix4.h"
+#include "components/vector3.h"
+#include "components/quaternion.h"
+#include "components/vector3.h"
 struct Transform {
   matrix4 mvt;
   vector3 position;
@@ -39,7 +43,7 @@ inline bool operator!=(const Transform &lhs, const Transform &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Transform &o, ISerializer &s) {
-  s.begin();
+  s.begin("Transform", ros::hash("Transform"), &o);
   s.key("mvt");
   serialize(o.mvt, s);
   s.key("position");

@@ -29,7 +29,7 @@ inline bool operator!=(const ShaderAssetRef &lhs, const ShaderAssetRef &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(ShaderAssetRef &o, ISerializer &s) {
-  s.begin();
+  s.begin("ShaderAssetRef", ros::hash("ShaderAssetRef"), &o);
   s.key("id");
   serialize(o.id, s);
   s.end();

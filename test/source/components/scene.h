@@ -4,6 +4,10 @@
 #pragma once
 #include "serializer.h"
 
+#include "components/camera.h"
+#include "components/hero.h"
+#include "components/sceneobject.h"
+#include "components/skybox.h"
 struct Scene {
   int activeCamera;
   ros::array<16, Camera> cameras;
@@ -44,7 +48,7 @@ inline bool operator!=(const Scene &lhs, const Scene &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Scene &o, ISerializer &s) {
-  s.begin();
+  s.begin("Scene", ros::hash("Scene"), &o);
   s.key("activeCamera");
   serialize(o.activeCamera, s);
   s.key("cameras");

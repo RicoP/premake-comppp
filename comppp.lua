@@ -11,6 +11,8 @@ state.enums = {}
 local file = nil
 local components = nil
 
+
+
 --debug
 function dump(o)
    if type(o) == 'table' then
@@ -183,10 +185,19 @@ function execute()
     write("#pragma once")
     write('#include "serializer.h"')
     write("")
+
+    for _,compA in pairs(fields) do
+      local comp = vtype(compA[2])
+      local is_component = components[comp] ~= nil
+      if is_component then
+        write('#include "components/' .. comp:lower() .. '.h"')
+      end
+    end
+
     write("struct " .. struct .. " {")
     for i=1,#fields do
       local name = fields[i][1]
-      local valtype = fields[i][2]
+        local valtype = fields[i][2]
 
       if enum(valtype) then
         write('  enum class ' .. firstToUpper(name) .. ' : long long {                        ')
@@ -319,7 +330,7 @@ function execute()
     write('// serializer                                                    //')
     write('///////////////////////////////////////////////////////////////////')
     write('inline void serialize('.. struct ..' &o, ISerializer &s) {         ')
-    write('  s.begin();                                                       ')
+    write('  s.begin("'.. struct ..'", ros::hash("'.. struct ..'"), &o);      ')
     for i=1,#fields do
       local name = fields[i][1]
       write('  s.key("'.. name ..'");                                         ')

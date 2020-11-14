@@ -4,6 +4,7 @@
 #pragma once
 #include "serializer.h"
 
+#include "components/objectid.h"
 struct Skybox {
   ObjectID object;
 
@@ -30,7 +31,7 @@ inline bool operator!=(const Skybox &lhs, const Skybox &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Skybox &o, ISerializer &s) {
-  s.begin();
+  s.begin("Skybox", ros::hash("Skybox"), &o);
   s.key("object");
   serialize(o.object, s);
   s.end();

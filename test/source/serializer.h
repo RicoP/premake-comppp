@@ -129,10 +129,9 @@ class IDeserializer {
 
 class ISerializer {
  public:
-  virtual void key(const char *) = 0;
+  virtual void begin(const char *name, ros::hash_value name_hash, void *) = 0;
 
-  virtual void begin() = 0;
-  virtual void end() = 0;
+  virtual void key(const char *) = 0;
 
   virtual void begin_array() = 0;
   virtual void end_array() = 0;
@@ -141,10 +140,12 @@ class ISerializer {
   virtual void end_enum() = 0;
 
   virtual void do_string(char *begin, char *end) = 0;
-  virtual void do_bool(bool) = 0;
-  virtual void do_float(float) = 0;
-  virtual void do_int(int) = 0;
+  virtual void do_bool(bool&) = 0;
+  virtual void do_float(float&) = 0;
+  virtual void do_int(int&) = 0;
   // virtual void do_long(long long) = 0;
+  
+  virtual void end() = 0;
 };
 
 namespace ros {

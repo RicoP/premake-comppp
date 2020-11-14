@@ -31,7 +31,7 @@ inline bool operator!=(const vector2 &lhs, const vector2 &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(vector2 &o, ISerializer &s) {
-  s.begin();
+  s.begin("vector2", ros::hash("vector2"), &o);
   s.key("x");
   serialize(o.x, s);
   s.key("y");

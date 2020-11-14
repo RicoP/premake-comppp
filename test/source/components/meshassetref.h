@@ -29,7 +29,7 @@ inline bool operator!=(const MeshAssetRef &lhs, const MeshAssetRef &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(MeshAssetRef &o, ISerializer &s) {
-  s.begin();
+  s.begin("MeshAssetRef", ros::hash("MeshAssetRef"), &o);
   s.key("id");
   serialize(o.id, s);
   s.end();

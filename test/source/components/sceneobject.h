@@ -4,6 +4,11 @@
 #pragma once
 #include "serializer.h"
 
+#include "components/objectid.h"
+#include "components/collider.h"
+#include "components/meshassetref.h"
+#include "components/textureassetref.h"
+#include "components/transform.h"
 struct SceneObject {
   ObjectID ID;
   Collider collider;
@@ -42,7 +47,7 @@ inline bool operator!=(const SceneObject &lhs, const SceneObject &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(SceneObject &o, ISerializer &s) {
-  s.begin();
+  s.begin("SceneObject", ros::hash("SceneObject"), &o);
   s.key("ID");
   serialize(o.ID, s);
   s.key("collider");
