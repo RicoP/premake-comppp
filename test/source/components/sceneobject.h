@@ -47,17 +47,19 @@ inline bool operator!=(const SceneObject &lhs, const SceneObject &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(SceneObject &o, ISerializer &s) {
-  s.begin("SceneObject", ros::hash("SceneObject"), &o);
-  s.key("ID");
-  serialize(o.ID, s);
-  s.key("collider");
-  serialize(o.collider, s);
-  s.key("mesh");
-  serialize(o.mesh, s);
-  s.key("texture");
-  serialize(o.texture, s);
-  s.key("transform");
-  serialize(o.transform, s);
+  if(s.node_begin("SceneObject", ros::hash("SceneObject"), &o)) {
+    s.key("ID");
+    serialize(o.ID, s);
+    s.key("collider");
+    serialize(o.collider, s);
+    s.key("mesh");
+    serialize(o.mesh, s);
+    s.key("texture");
+    serialize(o.texture, s);
+    s.key("transform");
+    serialize(o.transform, s);
+    s.node_end();
+  }
   s.end();
 }
 

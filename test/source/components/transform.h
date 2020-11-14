@@ -43,15 +43,17 @@ inline bool operator!=(const Transform &lhs, const Transform &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Transform &o, ISerializer &s) {
-  s.begin("Transform", ros::hash("Transform"), &o);
-  s.key("mvt");
-  serialize(o.mvt, s);
-  s.key("position");
-  serialize(o.position, s);
-  s.key("rotation");
-  serialize(o.rotation, s);
-  s.key("scale");
-  serialize(o.scale, s);
+  if(s.node_begin("Transform", ros::hash("Transform"), &o)) {
+    s.key("mvt");
+    serialize(o.mvt, s);
+    s.key("position");
+    serialize(o.position, s);
+    s.key("rotation");
+    serialize(o.rotation, s);
+    s.key("scale");
+    serialize(o.scale, s);
+    s.node_end();
+  }
   s.end();
 }
 

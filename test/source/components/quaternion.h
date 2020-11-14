@@ -35,15 +35,17 @@ inline bool operator!=(const quaternion &lhs, const quaternion &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(quaternion &o, ISerializer &s) {
-  s.begin("quaternion", ros::hash("quaternion"), &o);
-  s.key("w");
-  serialize(o.w, s);
-  s.key("x");
-  serialize(o.x, s);
-  s.key("y");
-  serialize(o.y, s);
-  s.key("z");
-  serialize(o.z, s);
+  if(s.node_begin("quaternion", ros::hash("quaternion"), &o)) {
+    s.key("w");
+    serialize(o.w, s);
+    s.key("x");
+    serialize(o.x, s);
+    s.key("y");
+    serialize(o.y, s);
+    s.key("z");
+    serialize(o.z, s);
+    s.node_end();
+  }
   s.end();
 }
 

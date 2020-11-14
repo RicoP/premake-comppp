@@ -44,17 +44,19 @@ inline bool operator!=(const Camera &lhs, const Camera &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Camera &o, ISerializer &s) {
-  s.begin("Camera", ros::hash("Camera"), &o);
-  s.key("far_plane");
-  serialize(o.far_plane, s);
-  s.key("fov");
-  serialize(o.fov, s);
-  s.key("lookat");
-  serialize(o.lookat, s);
-  s.key("near_plane");
-  serialize(o.near_plane, s);
-  s.key("projection");
-  serialize(o.projection, s);
+  if(s.node_begin("Camera", ros::hash("Camera"), &o)) {
+    s.key("far_plane");
+    serialize(o.far_plane, s);
+    s.key("fov");
+    serialize(o.fov, s);
+    s.key("lookat");
+    serialize(o.lookat, s);
+    s.key("near_plane");
+    serialize(o.near_plane, s);
+    s.key("projection");
+    serialize(o.projection, s);
+    s.node_end();
+  }
   s.end();
 }
 

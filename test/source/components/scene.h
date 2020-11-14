@@ -48,19 +48,21 @@ inline bool operator!=(const Scene &lhs, const Scene &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Scene &o, ISerializer &s) {
-  s.begin("Scene", ros::hash("Scene"), &o);
-  s.key("activeCamera");
-  serialize(o.activeCamera, s);
-  s.key("cameras");
-  serialize(o.cameras, s);
-  s.key("hero");
-  serialize(o.hero, s);
-  s.key("objects");
-  serialize(o.objects, s);
-  s.key("skybox");
-  serialize(o.skybox, s);
-  s.key("title");
-  serialize(o.title, s);
+  if(s.node_begin("Scene", ros::hash("Scene"), &o)) {
+    s.key("activeCamera");
+    serialize(o.activeCamera, s);
+    s.key("cameras");
+    serialize(o.cameras, s);
+    s.key("hero");
+    serialize(o.hero, s);
+    s.key("objects");
+    serialize(o.objects, s);
+    s.key("skybox");
+    serialize(o.skybox, s);
+    s.key("title");
+    serialize(o.title, s);
+    s.node_end();
+  }
   s.end();
 }
 

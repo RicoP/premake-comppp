@@ -3,73 +3,69 @@
 #include "serializer.h"
 
 struct ImguiSerializer : public ISerializer {
-  ros::hash_value _name_hash = 0;
-  void *_p = 0;
-  const char *_key_name = 0;
-  bool custom_type = false;
+  ros::hash_value _type_hash = 0;
+  const char * _key_name = "ROOT";
 
-  virtual void begin(const char *name, ros::hash_value name_hash,
-                     void *p) override {
-    assert(ros::hash(name) == name_hash);
+  virtual bool node_begin(const char *type, ros::hash_value type_hash, void *p) override {
+    assert(ros::hash(type) == type_hash);
 
-    _name_hash = name_hash;
-    _p = p;
+    ImGui::PushID(_key_name);
+    _type_hash = type_hash;
 
-    custom_type = true;
-    switch (_name_hash) {
+    switch (_type_hash) {
       case ros::hash("vector3"):
         ImGui::InputFloat3(_key_name, reinterpret_cast<float *>(p));
-        break;
+        return false;
       default:
-        custom_type = false;
         break;
     }
+
+    //if(!custom_type) {
+    //  ImGui::PushID(name_hash);
+    //  if (ImGui::TreeNode(name)) {
+    //    Serializer<T, ImguiSerializer>::serialize(o, *this);
+    //    ImGui::TreePop();
+    //  }
+    //  ImGui::PopID();
+    //}
+
+    return ImGui::TreeNode(type);
   }
 
   virtual void key(const char *name) override {
-    if (custom_type) return;
-
     _key_name = name;
     // ImGui::Text(name);
     // ImGui::SameLine();
+
+    //ImGui::TreePop(); //???
   }
 
   virtual void begin_array() override {
-    if (custom_type) return;
   }
   virtual void end_array() override {
-    if (custom_type) return;
   }
   virtual void write_enum(const char *) override {
-    if (custom_type) return;
   }
   virtual void end_enum() override {
-    if (custom_type) return;
   }
   virtual void do_string(char *begin, char *end) override {
-    if (custom_type) return;
-
     ptrdiff_t diff = end - begin;
 
     ImGui::InputText(_key_name, begin, diff);
   }
   virtual void do_bool(bool &b) override {
-    if (custom_type) return;
-
     ImGui::Checkbox(_key_name, &b);
   }
   virtual void do_float(float &f) override {
-    if (custom_type) return;
-
     ImGui::InputFloat(_key_name, &f);
   }
   virtual void do_int(int &i) override {
-    if (custom_type) return;
-
     ImGui::InputInt(_key_name, &i);
   }
-
+  virtual void node_end() override {
+    ImGui::TreePop();
+  }
   virtual void end() override {
-    if (custom_type) return;
+      ImGui::PopID();
   }
 };

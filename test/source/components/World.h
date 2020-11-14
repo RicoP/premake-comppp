@@ -36,13 +36,15 @@ inline bool operator!=(const World &lhs, const World &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(World &o, ISerializer &s) {
-  s.begin("World", ros::hash("World"), &o);
-  s.key("player");
-  serialize(o.player, s);
-  s.key("scores");
-  serialize(o.scores, s);
-  s.key("title");
-  serialize(o.title, s);
+  if(s.node_begin("World", ros::hash("World"), &o)) {
+    s.key("player");
+    serialize(o.player, s);
+    s.key("scores");
+    serialize(o.scores, s);
+    s.key("title");
+    serialize(o.title, s);
+    s.node_end();
+  }
   s.end();
 }
 

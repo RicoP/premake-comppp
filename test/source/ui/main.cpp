@@ -138,7 +138,7 @@ int main(int, char**) {
     {
       ImGui::Begin("Hello, world!");
 
-      serialize(w, imguiSerializer);
+      serialize(w.player.values[0], imguiSerializer);
 
       ImGui::End();
     }

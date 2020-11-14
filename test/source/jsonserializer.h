@@ -87,19 +87,22 @@ struct JsonSerializer : public ISerializer {
     queued[indent_depth] = c;
   }
 
+  virtual bool node_begin(const char *, ros::hash_value, void *) override { queue_char(',');      indent(); put("{");   return true; }
+
   virtual void key(const char* name)     override { queue_char(',');             print_indent();  put("\"", name, "\" : "); clear(); }
-  virtual void begin()                   override { queue_char(',');   indent();                  put("{");                          }
-  virtual void end()                     override {                  unindent(); print_indent();  put("}");                          }
   virtual void begin_array()             override { queue_char(',');   indent();                  put("[");                          }
   virtual void end_array()               override {                  unindent();                  put("]");                          }
   virtual void write_enum(const char* e) override { if(queue() == 0) put("\"");  queue_char('|'); put(e);                            }
   virtual void end_enum()                override {                                               put("\"");                clear(); }
 
-  virtual void do_float(float f)         override { queue_char(',');                              put(f);                            }
-  virtual void do_bool(bool b)           override { queue_char(',');                              put(b?"true":"false");             }
-  virtual void do_int(int i)             override { queue_char(',');                              put(i);                            }
+  virtual void do_string(char* begin, char* end) override { put("\""); decode_string(begin, end); put("\"");                         }
+  virtual void do_float(float &f)         override { queue_char(',');                             put(f);                            }
+  virtual void do_bool(bool &b)           override { queue_char(',');                             put(b?"true":"false");             }
+  virtual void do_int(int &i)             override { queue_char(',');                             put(i);                            }
 
-  virtual void do_string(char* begin, char* end) override { put("\""); decode_string(begin, end); put("\""); }
+  virtual void node_end()                override { }
+
+  virtual void end()                     override {                  unindent(); print_indent();  put("}");                          }
 };
 
 struct JsonDeserializer : public IDeserializer {

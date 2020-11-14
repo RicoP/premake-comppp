@@ -34,13 +34,15 @@ inline bool operator!=(const vector3 &lhs, const vector3 &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(vector3 &o, ISerializer &s) {
-  s.begin("vector3", ros::hash("vector3"), &o);
-  s.key("x");
-  serialize(o.x, s);
-  s.key("y");
-  serialize(o.y, s);
-  s.key("z");
-  serialize(o.z, s);
+  if(s.node_begin("vector3", ros::hash("vector3"), &o)) {
+    s.key("x");
+    serialize(o.x, s);
+    s.key("y");
+    serialize(o.y, s);
+    s.key("z");
+    serialize(o.z, s);
+    s.node_end();
+  }
   s.end();
 }
 

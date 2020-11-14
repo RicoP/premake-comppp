@@ -63,27 +63,29 @@ inline bool operator!=(const Hero &lhs, const Hero &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Hero &o, ISerializer &s) {
-  s.begin("Hero", ros::hash("Hero"), &o);
-  s.key("cam_offset");
-  serialize(o.cam_offset, s);
-  s.key("cam_speed");
-  serialize(o.cam_speed, s);
-  s.key("heroRunSpeed");
-  serialize(o.heroRunSpeed, s);
-  s.key("heroWalkSpeed");
-  serialize(o.heroWalkSpeed, s);
-  s.key("inputv");
-  serialize(o.inputv, s);
-  s.key("jump");
-  serialize(o.jump, s);
-  s.key("jump_sound");
-  serialize(o.jump_sound, s);
-  s.key("renderObject");
-  serialize(o.renderObject, s);
-  s.key("transform");
-  serialize(o.transform, s);
-  s.key("velocity");
-  serialize(o.velocity, s);
+  if(s.node_begin("Hero", ros::hash("Hero"), &o)) {
+    s.key("cam_offset");
+    serialize(o.cam_offset, s);
+    s.key("cam_speed");
+    serialize(o.cam_speed, s);
+    s.key("heroRunSpeed");
+    serialize(o.heroRunSpeed, s);
+    s.key("heroWalkSpeed");
+    serialize(o.heroWalkSpeed, s);
+    s.key("inputv");
+    serialize(o.inputv, s);
+    s.key("jump");
+    serialize(o.jump, s);
+    s.key("jump_sound");
+    serialize(o.jump_sound, s);
+    s.key("renderObject");
+    serialize(o.renderObject, s);
+    s.key("transform");
+    serialize(o.transform, s);
+    s.key("velocity");
+    serialize(o.velocity, s);
+    s.node_end();
+  }
   s.end();
 }
 

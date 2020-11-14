@@ -80,11 +80,13 @@ inline bool operator!=(const Player &lhs, const Player &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Player &o, ISerializer &s) {
-  s.begin("Player", ros::hash("Player"), &o);
-  s.key("position");
-  serialize(o.position, s);
-  s.key("state");
-  serialize(o.state, s);
+  if(s.node_begin("Player", ros::hash("Player"), &o)) {
+    s.key("position");
+    serialize(o.position, s);
+    s.key("state");
+    serialize(o.state, s);
+    s.node_end();
+  }
   s.end();
 }
 

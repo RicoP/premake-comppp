@@ -31,9 +31,11 @@ inline bool operator!=(const Skybox &lhs, const Skybox &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Skybox &o, ISerializer &s) {
-  s.begin("Skybox", ros::hash("Skybox"), &o);
-  s.key("object");
-  serialize(o.object, s);
+  if(s.node_begin("Skybox", ros::hash("Skybox"), &o)) {
+    s.key("object");
+    serialize(o.object, s);
+    s.node_end();
+  }
   s.end();
 }
 

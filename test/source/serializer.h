@@ -129,7 +129,7 @@ class IDeserializer {
 
 class ISerializer {
  public:
-  virtual void begin(const char *name, ros::hash_value name_hash, void *) = 0;
+  virtual bool node_begin(const char *name, ros::hash_value name_hash, void *) = 0;
 
   virtual void key(const char *) = 0;
 
@@ -144,7 +144,9 @@ class ISerializer {
   virtual void do_float(float&) = 0;
   virtual void do_int(int&) = 0;
   // virtual void do_long(long long) = 0;
-  
+
+  virtual void node_end() = 0;
+
   virtual void end() = 0;
 };
 

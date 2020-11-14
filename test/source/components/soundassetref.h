@@ -29,9 +29,11 @@ inline bool operator!=(const SoundAssetRef &lhs, const SoundAssetRef &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(SoundAssetRef &o, ISerializer &s) {
-  s.begin("SoundAssetRef", ros::hash("SoundAssetRef"), &o);
-  s.key("id");
-  serialize(o.id, s);
+  if(s.node_begin("SoundAssetRef", ros::hash("SoundAssetRef"), &o)) {
+    s.key("id");
+    serialize(o.id, s);
+    s.node_end();
+  }
   s.end();
 }
 

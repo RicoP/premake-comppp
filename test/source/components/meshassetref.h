@@ -29,9 +29,11 @@ inline bool operator!=(const MeshAssetRef &lhs, const MeshAssetRef &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(MeshAssetRef &o, ISerializer &s) {
-  s.begin("MeshAssetRef", ros::hash("MeshAssetRef"), &o);
-  s.key("id");
-  serialize(o.id, s);
+  if(s.node_begin("MeshAssetRef", ros::hash("MeshAssetRef"), &o)) {
+    s.key("id");
+    serialize(o.id, s);
+    s.node_end();
+  }
   s.end();
 }
 

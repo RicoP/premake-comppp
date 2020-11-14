@@ -59,39 +59,41 @@ inline bool operator!=(const matrix4 &lhs, const matrix4 &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(matrix4 &o, ISerializer &s) {
-  s.begin("matrix4", ros::hash("matrix4"), &o);
-  s.key("m00");
-  serialize(o.m00, s);
-  s.key("m01");
-  serialize(o.m01, s);
-  s.key("m02");
-  serialize(o.m02, s);
-  s.key("m03");
-  serialize(o.m03, s);
-  s.key("m10");
-  serialize(o.m10, s);
-  s.key("m11");
-  serialize(o.m11, s);
-  s.key("m12");
-  serialize(o.m12, s);
-  s.key("m13");
-  serialize(o.m13, s);
-  s.key("m20");
-  serialize(o.m20, s);
-  s.key("m21");
-  serialize(o.m21, s);
-  s.key("m22");
-  serialize(o.m22, s);
-  s.key("m23");
-  serialize(o.m23, s);
-  s.key("m30");
-  serialize(o.m30, s);
-  s.key("m31");
-  serialize(o.m31, s);
-  s.key("m32");
-  serialize(o.m32, s);
-  s.key("m33");
-  serialize(o.m33, s);
+  if(s.node_begin("matrix4", ros::hash("matrix4"), &o)) {
+    s.key("m00");
+    serialize(o.m00, s);
+    s.key("m01");
+    serialize(o.m01, s);
+    s.key("m02");
+    serialize(o.m02, s);
+    s.key("m03");
+    serialize(o.m03, s);
+    s.key("m10");
+    serialize(o.m10, s);
+    s.key("m11");
+    serialize(o.m11, s);
+    s.key("m12");
+    serialize(o.m12, s);
+    s.key("m13");
+    serialize(o.m13, s);
+    s.key("m20");
+    serialize(o.m20, s);
+    s.key("m21");
+    serialize(o.m21, s);
+    s.key("m22");
+    serialize(o.m22, s);
+    s.key("m23");
+    serialize(o.m23, s);
+    s.key("m30");
+    serialize(o.m30, s);
+    s.key("m31");
+    serialize(o.m31, s);
+    s.key("m32");
+    serialize(o.m32, s);
+    s.key("m33");
+    serialize(o.m33, s);
+    s.node_end();
+  }
   s.end();
 }
 

@@ -29,9 +29,11 @@ inline bool operator!=(const ObjectID &lhs, const ObjectID &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(ObjectID &o, ISerializer &s) {
-  s.begin("ObjectID", ros::hash("ObjectID"), &o);
-  s.key("id");
-  serialize(o.id, s);
+  if(s.node_begin("ObjectID", ros::hash("ObjectID"), &o)) {
+    s.key("id");
+    serialize(o.id, s);
+    s.node_end();
+  }
   s.end();
 }
 

@@ -41,15 +41,17 @@ inline bool operator!=(const Collider &lhs, const Collider &rhs) {
 // serializer                                                    //
 ///////////////////////////////////////////////////////////////////
 inline void serialize(Collider &o, ISerializer &s) {
-  s.begin("Collider", ros::hash("Collider"), &o);
-  s.key("active");
-  serialize(o.active, s);
-  s.key("intersections");
-  serialize(o.intersections, s);
-  s.key("pivot");
-  serialize(o.pivot, s);
-  s.key("scale");
-  serialize(o.scale, s);
+  if(s.node_begin("Collider", ros::hash("Collider"), &o)) {
+    s.key("active");
+    serialize(o.active, s);
+    s.key("intersections");
+    serialize(o.intersections, s);
+    s.key("pivot");
+    serialize(o.pivot, s);
+    s.key("scale");
+    serialize(o.scale, s);
+    s.node_end();
+  }
   s.end();
 }
 
