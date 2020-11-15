@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 
 #include "serializer.h"
@@ -91,6 +93,7 @@ struct JsonSerializer : public ISerializer {
 
   virtual void key(const char* name)     override { queue_char(',');             print_indent();  put("\"", name, "\" : "); clear(); }
   virtual void begin_array()             override { queue_char(',');   indent();                  put("[");                          }
+  virtual void in_array(size_t)          override { }
   virtual void end_array()               override {                  unindent();                  put("]");                          }
   virtual void write_enum(const char* e) override { if(queue() == 0) put("\"");  queue_char('|'); put(e);                            }
   virtual void end_enum()                override {                                               put("\"");                clear(); }
@@ -100,9 +103,7 @@ struct JsonSerializer : public ISerializer {
   virtual void do_bool(bool &b)          override { queue_char(',');                              put(b?"true":"false");             }
   virtual void do_int(int &i)            override { queue_char(',');                              put(i);                            }
 
-  virtual void node_end()                  override { }
-  virtual void begin_array_element(size_t) override { }
-  virtual void end_array_element()         override { }
+  virtual void node_end()                override { }
 
   virtual void end()                     override {                  unindent(); print_indent();  put("}");                          }
 };

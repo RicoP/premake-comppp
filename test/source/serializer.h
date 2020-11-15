@@ -134,8 +134,7 @@ class ISerializer {
   virtual void key(const char *) = 0;
 
   virtual void begin_array() = 0;
-  virtual void begin_array_element(size_t) = 0;
-  virtual void end_array_element() = 0;
+  virtual void in_array(size_t) = 0;
   virtual void end_array() = 0;
 
   virtual void write_enum(const char *) = 0;
@@ -241,9 +240,8 @@ inline void serialize(ros::array<N, T> &o, ISerializer &s) {
   s.begin_array();
   for (size_t i = 0; i != o.size; ++i) {
     //assert(i < N);
-    s.begin_array_element(i);
+    s.in_array(i);
     serialize(o.values[i], s);
-    s.end_array_element();
   }
   s.end_array();
 }

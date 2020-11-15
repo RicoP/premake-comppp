@@ -12,9 +12,54 @@
 #include <jsonserializer.h>
 #include <tchar.h>
 
-#include "components/world.h"
 #include "imguiserializer.h"
 #include "serializer.h"
+
+
+#include "components/vector2.h"
+#include "components/vector3.h"
+#include "components/quaternion.h"
+#include "components/matrix4.h"
+
+inline vector2 vector(float x, float y) {
+  vector2 v = {x, y};
+  return v;
+}
+
+inline vector3 vector(float x, float y, float z) {
+  vector3 v = {x, y, z};
+  return v;
+}
+
+inline matrix4 identity4() {
+  matrix4 m;
+  std::memset(&m, 0, sizeof(matrix4));
+  m.m00 = 1;
+  m.m11 = 1;
+  m.m22 = 1;
+  m.m33 = 1;
+  return m;
+}
+
+inline quaternion qidentity() {
+  quaternion q;
+  q.x = 0;
+  q.y = 0;
+  q.z = 0;
+  q.w = 1;
+  return q;
+}
+
+#include "components/objectid.h"
+
+inline ObjectID idgen() {
+  static int id = 1;
+  ObjectID o = {id++};
+  return o;
+}
+
+#include "components/components.h"
+#include "jsonserializer.h"
 
 // Data
 static ID3D11Device* g_pd3dDevice = NULL;
@@ -30,8 +75,6 @@ void CleanupDeviceD3D();
 void CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-void renderImgui(World& w, ImguiSerializer& s) { serialize(w, s); }
 
 // Main code
 int main(int, char**) {
@@ -142,6 +185,10 @@ int main(int, char**) {
   JsonDeserializer jsond(json);
   deserialize(w, jsond);
 
+  Scene scene;
+  ros::hash_value h = ros::hash("Hello World");
+  randomize(scene, h);
+
   // Main loop
   MSG msg;
   ZeroMemory(&msg, sizeof(msg));
@@ -176,7 +223,7 @@ int main(int, char**) {
     {
       ImGui::Begin("Hello, world!");
 
-      renderImgui(w, imguiSerializer);
+      serialize(scene, imguiSerializer);
 
       ImGui::End();
     }
