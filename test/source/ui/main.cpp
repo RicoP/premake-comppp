@@ -9,11 +9,12 @@
 #include "imgui_impl_win32.h"
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
+#include <jsonserializer.h>
 #include <tchar.h>
 
-#include "serializer.h"
-#include "imguiserializer.h"
 #include "components/world.h"
+#include "imguiserializer.h"
+#include "serializer.h"
 
 // Data
 static ID3D11Device* g_pd3dDevice = NULL;
@@ -21,12 +22,16 @@ static ID3D11DeviceContext* g_pd3dDeviceContext = NULL;
 static IDXGISwapChain* g_pSwapChain = NULL;
 static ID3D11RenderTargetView* g_mainRenderTargetView = NULL;
 
+int main(int, char**);
+
 // Forward declarations of helper functions
 bool CreateDeviceD3D(HWND hWnd);
 void CleanupDeviceD3D();
 void CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+void renderImgui(World& w, ImguiSerializer& s) { serialize(w, s); }
 
 // Main code
 int main(int, char**) {
@@ -99,10 +104,43 @@ int main(int, char**) {
 
   ImguiSerializer imguiSerializer;
 
+  char* json = R"({
+      "player" : [{
+          "position" : {
+            "x" : 1,
+            "y" : 2,
+            "z" : 3
+          },
+          "state" : "Active"
+        }, {
+          "position" : {
+            "x" : 4,
+            "y" : 5,
+            "z" : 6
+          },
+          "state" : "Active"
+        }, {
+          "position" : {
+            "x" : 7,
+            "y" : 8,
+            "z" : 9
+          },
+          "state" : "Active"
+        }, {
+          "position" : {
+            "x" : 10,
+            "y" : 11,
+            "z" : 12
+          },
+          "state" : "Active|Jumping"
+        }],
+      "scores" : [1, 1.3, 42, 3.14],
+      "title" : "Hello"
+    })";
+
   World w;
-  w.setDefaultValues();
-  ros::hash_value h = ros::hash("Test123");
-  randomize(w, h);
+  JsonDeserializer jsond(json);
+  deserialize(w, jsond);
 
   // Main loop
   MSG msg;
@@ -138,7 +176,7 @@ int main(int, char**) {
     {
       ImGui::Begin("Hello, world!");
 
-      serialize(w.player.values[0], imguiSerializer);
+      renderImgui(w, imguiSerializer);
 
       ImGui::End();
     }

@@ -96,11 +96,13 @@ struct JsonSerializer : public ISerializer {
   virtual void end_enum()                override {                                               put("\"");                clear(); }
 
   virtual void do_string(char* begin, char* end) override { put("\""); decode_string(begin, end); put("\"");                         }
-  virtual void do_float(float &f)         override { queue_char(',');                             put(f);                            }
-  virtual void do_bool(bool &b)           override { queue_char(',');                             put(b?"true":"false");             }
-  virtual void do_int(int &i)             override { queue_char(',');                             put(i);                            }
+  virtual void do_float(float &f)        override { queue_char(',');                              put(f);                            }
+  virtual void do_bool(bool &b)          override { queue_char(',');                              put(b?"true":"false");             }
+  virtual void do_int(int &i)            override { queue_char(',');                              put(i);                            }
 
-  virtual void node_end()                override { }
+  virtual void node_end()                  override { }
+  virtual void begin_array_element(size_t) override { }
+  virtual void end_array_element()         override { }
 
   virtual void end()                     override {                  unindent(); print_indent();  put("}");                          }
 };
