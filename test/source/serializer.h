@@ -129,11 +129,12 @@ class IDeserializer {
 
 class ISerializer {
  public:
-  virtual bool node_begin(const char *name, ros::hash_value name_hash, void *) = 0;
+  virtual bool node_begin(const char *name, ros::hash_value name_hash,
+                          void *) = 0;
 
   virtual void key(const char *) = 0;
 
-  virtual void begin_array() = 0;
+  virtual bool begin_array() = 0;
   virtual void in_array(size_t) = 0;
   virtual void end_array() = 0;
 
@@ -141,9 +142,9 @@ class ISerializer {
   virtual void end_enum() = 0;
 
   virtual void do_string(char *begin, char *end) = 0;
-  virtual void do_bool(bool&) = 0;
-  virtual void do_float(float&) = 0;
-  virtual void do_int(int&) = 0;
+  virtual void do_bool(bool &) = 0;
+  virtual void do_float(float &) = 0;
+  virtual void do_int(int &) = 0;
   // virtual void do_long(long long) = 0;
 
   virtual void node_end() = 0;
@@ -237,13 +238,14 @@ inline void randomize(ros::string<N> &o, ros::hash_value &h) {
 
 template <size_t N, class T>
 inline void serialize(ros::array<N, T> &o, ISerializer &s) {
-  s.begin_array();
-  for (size_t i = 0; i != o.size; ++i) {
-    //assert(i < N);
-    s.in_array(i);
-    serialize(o.values[i], s);
+  if (s.begin_array()) {
+    for (size_t i = 0; i != o.size; ++i) {
+      // assert(i < N);
+      s.in_array(i);
+      serialize(o.values[i], s);
+    }
+    s.end_array();
   }
-  s.end_array();
 }
 
 template <size_t N, class T>

@@ -76,7 +76,6 @@ struct JsonSerializer : public ISerializer {
             }
         }
       }
-      //print_zeros(leading_zeros);
   }
 
   char queue()              { return queued[indent_depth];                    }
@@ -85,14 +84,17 @@ struct JsonSerializer : public ISerializer {
   void unindent()           { queued[indent_depth--] = 0;                     }
 
   void queue_char(char c) {
-    if (queued[indent_depth]) put(queued[indent_depth], c==','?" ":"");
+    if (queued[indent_depth]) {
+        put(queued[indent_depth]);
+        if(c==',') put(" ");
+    }
     queued[indent_depth] = c;
   }
 
-  virtual bool node_begin(const char *, ros::hash_value, void *) override { queue_char(',');      indent(); put("{");   return true; }
+  virtual bool node_begin(const char *, ros::hash_value, void *) override { queue_char(',');      indent(); put("{");                return true; }
 
   virtual void key(const char* name)     override { queue_char(',');             print_indent();  put("\"", name, "\" : "); clear(); }
-  virtual void begin_array()             override { queue_char(',');   indent();                  put("[");                          }
+  virtual bool begin_array()             override { queue_char(',');   indent();                  put("[");                          return true; }
   virtual void in_array(size_t)          override { }
   virtual void end_array()               override {                  unindent();                  put("]");                          }
   virtual void write_enum(const char* e) override { if(queue() == 0) put("\"");  queue_char('|'); put(e);                            }
