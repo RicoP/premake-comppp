@@ -9,12 +9,11 @@
 #include "imgui_impl_win32.h"
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
-#include <jsonserializer.h>
 #include <tchar.h>
 
-#include "imguiserializer.h"
-#include "serializer.h"
-
+#include <serializer/serializer.h>
+#include <serializer/jsonserializer.h>
+#include <serializer/imguiserializer.h>
 
 #include "components/vector2.h"
 #include "components/vector3.h"
@@ -59,7 +58,6 @@ inline ObjectID idgen() {
 }
 
 #include "components/components.h"
-#include "jsonserializer.h"
 
 // Data
 static ID3D11Device* g_pd3dDevice = NULL;

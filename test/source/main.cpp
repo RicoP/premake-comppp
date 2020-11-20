@@ -43,7 +43,7 @@ inline ObjectID idgen() {
 }
 
 #include "components/components.h"
-#include "jsonserializer.h"
+#include <serializer/jsonserializer.h>
 
 constexpr const char* FG_GREEN = "\x1B[32m";
 constexpr const char* BG_BLACK = "\033[0m";

@@ -125,13 +125,24 @@ project "app.test"
 	  objects= {"SceneObject[1024]" },
 	}
 
+	includedirs { "externals/ros/include" }
+	includedirs { "externals/include" }
+	includedirs { "../include" }
 	files {"source/**"}
 	removefiles {"source/ui/**"}
+	removefiles { "externals/**" }
 	component.generate()
 
 project "app.ui"
 	links { "d3d11" }
 	kind "ConsoleApp"
-	files {"source/**"}
+	files {"source/ui/**"}
+	files {"externals/include/imgui/*"}
+	includedirs { "../include" }
 	includedirs { "source" }
+	includedirs { "externals/ros/include" }
+	includedirs { "externals/include/imgui" }
+	includedirs { "externals/include/imgui/backends" }
+	files { "externals/include/imgui/backends/imgui_impl_dx11.cpp" }
+	files { "externals/include/imgui/backends/imgui_impl_win32.cpp" }
 	removefiles {"source/main.cpp"}
