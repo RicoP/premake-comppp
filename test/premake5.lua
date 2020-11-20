@@ -5,6 +5,8 @@ workspace "Serializer"
 	targetdir ".build/bin/%{cfg.buildcfg}"
 	configurations { "Debug", "Release" }
 	language "C++"
+  architecture "x64"
+  cppdialect "C++17"
 	component.targetdir "source/components"
 
 project "app.test"
@@ -139,6 +141,7 @@ project "app.ui"
 	files {"source/ui/**"}
 	files {"externals/include/imgui/*"}
 	includedirs { "../include" }
+	files { "../include/**" }
 	includedirs { "source" }
 	includedirs { "externals/ros/include" }
 	includedirs { "externals/include/imgui" }

@@ -211,7 +211,7 @@ function execute()
       elseif string_type(valtype) ~= 0 then
         write('  ros::string<' .. string_type(valtype) .. '> ' .. name .. ';')
       elseif vector(valtype) then
-        write('  ros::array<' .. size(valtype) .. ', ' .. vtype(valtype) .. '> ' .. name .. ';')
+        write('  rose::vectorPOD<' .. size(valtype) .. ', ' .. vtype(valtype) .. '> ' .. name .. ';')
       else
         write('  ' .. valtype .. ' ' .. name .. ';')
       end

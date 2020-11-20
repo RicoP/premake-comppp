@@ -1,95 +1,7 @@
 #pragma once
 
-#include <array>
-
-namespace ros {
-
-typedef unsigned long long hash_value;
-
-constexpr hash_value hash_fnv(const char *pBuffer, const char *end) {
-  constexpr hash_value MagicPrime = 0x00000100000001b3;
-  hash_value Hash = 0xcbf29ce484222325ULL;
-
-  for (; pBuffer != end; pBuffer++) Hash = (Hash ^ *pBuffer) * MagicPrime;
-
-  return Hash;
-}
-
-constexpr hash_value fnFNV(const char *pBuffer) {
-  constexpr hash_value MagicPrime = 0x00000100000001b3;
-  hash_value Hash = 0xcbf29ce484222325ULL;
-
-  for (; *pBuffer; pBuffer++) Hash = (Hash ^ *pBuffer) * MagicPrime;
-
-  return Hash;
-}
-
-constexpr hash_value hash(const char *value) { return fnFNV(value); }
-
-// http://www.jstatsoft.org/article/view/v008i14/xorshift.pdf page 4
-// https://en.wikipedia.org/wiki/Xorshift#xorshift*
-constexpr hash_value xor64(hash_value h) {
-  h ^= 88172645463325252ULL;  // xor with a constant so a seed of 0 will not
-                              // result in a infinite loop
-  h ^= h >> 12;
-  h ^= h << 25;
-  h ^= h >> 27;
-  return h * 0x2545F4914F6CDD1DULL;
-}
-
-namespace internal {
-template <class T>
-inline hash_value hash_simple(T value) {
-  static_assert(sizeof(T) <= sizeof(hash_value),
-                "sizeof(T) can't be bigger than sizeof(hash_value)");
-  union {
-    hash_value u_h;
-    T u_f;
-  };
-  u_h = 0;
-  u_f = value;
-  return u_h;
-}
-}  // namespace internal
-
-constexpr void next(hash_value &h) { h = xor64(h); }
-
-inline float nextf(hash_value &h) {
-  next(h);
-
-  union {
-    hash_value u_x;
-    float u_f;
-  };
-
-  // Manipulate the exponent and fraction of the floating point number
-  // in a way, that we get a number from 1 (inlcusive) and 2 (exclusive).
-  u_x = h;
-  u_x &= 0x007FFFFF007FFFFF;
-  u_x |= 0x3F8000003F800000;
-
-  return u_f - 1.0f;
-}
-
-constexpr hash_value hash(unsigned char v) { return v; }
-constexpr hash_value hash(unsigned int v) { return v; }
-constexpr hash_value hash(unsigned long int v) { return v; }
-constexpr hash_value hash(unsigned long long int v) { return v; }
-constexpr hash_value hash(unsigned short int v) { return v; }
-
-constexpr hash_value hash(bool v) { return v ? 1 : 0; }
-
-inline hash_value hash(signed char v) { return internal::hash_simple(v); }
-inline hash_value hash(int v) { return internal::hash_simple(v); }
-inline hash_value hash(long int v) { return internal::hash_simple(v); }
-inline hash_value hash(long long int v) { return internal::hash_simple(v); }
-inline hash_value hash(short int v) { return internal::hash_simple(v); }
-
-inline hash_value hash(double v) { return internal::hash_simple(v); }
-inline hash_value hash(float v) { return internal::hash_simple(v); }
-// inline hash_value hash(long double v) { return internal::hash_simple(v); }
-inline hash_value hash(wchar_t v) { return internal::hash_simple(v); }
-}  // namespace ros
+#include <ros/hash.h>
+#include <ros/container.h>
 
 namespace ros {
 template <size_t N>
@@ -152,33 +64,6 @@ class ISerializer {
   virtual void end() = 0;
 };
 
-namespace ros {
-template <size_t N, class T>
-struct array {
-  size_t size;
-  T values[N];
-
-  bool operator==(const array &rhs) const {
-    if (size != rhs.size) return false;
-    for (size_t i = 0; i != size; ++i) {
-      if (!(values[i] == rhs.values[i])) return false;
-    }
-    return true;
-  }
-
-  template <size_t N>
-  hash_value hash(ros::string<N> &s) {
-    return ros::hash_fnv(o.data, o.data + N);
-  }
-};
-
-template <size_t N, class T>
-inline hash_value hash(const array<N, T> &v);
-}  // namespace ros
-
-// inline void serialize(long long &i, ISerializer &s) { s.do_long(i); }
-// inline void deserialize(long long &i, IDeserializer &d) { d.do_long(i); }
-
 template <size_t N>
 inline void serialize(ros::string<N> &o, ISerializer &s) {
   s.do_string(o.data, o.data + N);
@@ -213,13 +98,13 @@ inline void randomize(bool &o, ros::hash_value &h) {
 }
 
 template <size_t N, class T>
-inline void randomize(ros::array<N, T> &o, ros::hash_value &h) {
+inline void randomize(rose::vectorPOD<N, T> &o, ros::hash_value &h) {
   ros::next(h);
 
   size_t length = h % N;
   o.size = length;
   for (size_t i = 0; i != length; ++i) {
-    randomize(o.values[i], h);
+    randomize(o.elements[i], h);
   }
 }
 
@@ -237,22 +122,23 @@ inline void randomize(ros::string<N> &o, ros::hash_value &h) {
 }
 
 template <size_t N, class T>
-inline void serialize(ros::array<N, T> &o, ISerializer &s) {
+inline void serialize(rose::vectorPOD<N, T> &o, ISerializer &s) {
   if (s.begin_array()) {
     for (size_t i = 0; i != o.size; ++i) {
       // assert(i < N);
       s.in_array(i);
-      serialize(o.values[i], s);
+      serialize(o.elements[i], s);
     }
     s.end_array();
   }
 }
 
 template <size_t N, class T>
-inline void deserialize(ros::array<N, T> &o, IDeserializer &d) {
+inline void deserialize(rose::vectorPOD<N, T> &o, IDeserializer &d) {
   o.size = 0;
   while (d.in_array()) {
-    deserialize(o.values[o.size], d);
+    // assert(o.size < N);
+    deserialize(o.elements[o.size], d);
     ++o.size;
   }
 }

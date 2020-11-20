@@ -6,8 +6,8 @@
 
 #include "components/player.h"
 struct World {
-  ros::array<4, Player> player;
-  ros::array<4, float> scores;
+  rose::vectorPOD<4, Player> player;
+  rose::vectorPOD<4, float> scores;
   ros::string<64> title;
 
   void setDefaultValues() {

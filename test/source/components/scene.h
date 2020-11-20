@@ -10,9 +10,9 @@
 #include "components/skybox.h"
 struct Scene {
   int activeCamera;
-  ros::array<16, Camera> cameras;
+  rose::vectorPOD<16, Camera> cameras;
   Hero hero;
-  ros::array<1024, SceneObject> objects;
+  rose::vectorPOD<1024, SceneObject> objects;
   Skybox skybox;
   ros::string<256> title;
 

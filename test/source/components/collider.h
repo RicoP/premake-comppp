@@ -9,7 +9,7 @@
 #include "components/vector3.h"
 struct Collider {
   bool active;
-  ros::array<16, ObjectID> intersections;
+  rose::vectorPOD<16, ObjectID> intersections;
   vector3 pivot;
   vector3 scale;
 
