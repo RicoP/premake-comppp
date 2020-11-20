@@ -9,23 +9,17 @@ struct ImguiSerializer : public ISerializer {
   char _array_full_name[128] = {0};
   int depth = 0;
 
+  virtual bool custom_type(const char *type, ros::hash_value type_hash, void *p) {
+    return false;
+  }
+
   virtual bool node_begin(const char *type, ros::hash_value type_hash,
                           void *p) override {
     assert(ros::hash(type) == type_hash);
 
     _type_hash = type_hash;
 
-    switch (_type_hash) {
-      case ros::hash("vector2"):
-        ImGui::InputFloat2(_key_name, reinterpret_cast<float *>(p));
-        return false;
-    
-      case ros::hash("vector3"):
-        ImGui::InputFloat3(_key_name, reinterpret_cast<float *>(p));
-        return false;
-      default:
-        break;
-    }
+    if(custom_type(type, type_hash, p)) return false;
 
     if(depth++ == 0) return true; //ROOT is always open
     else  {

@@ -59,6 +59,23 @@ inline ObjectID idgen() {
 
 #include "components/components.h"
 
+class CustomImguiSerializer : public ImguiSerializer {
+  virtual bool custom_type(const char* type, ros::hash_value type_hash,
+                           void* p) {
+    switch (_type_hash) {
+      case ros::hash("vector2"):
+        ImGui::InputFloat2(_key_name, reinterpret_cast<float *>(p));
+        return true;
+
+      case ros::hash("vector3"):
+        ImGui::InputFloat3(_key_name, reinterpret_cast<float *>(p));
+        return true;
+      default:
+        return false;
+    }
+  }
+};
+
 // Data
 static ID3D11Device* g_pd3dDevice = NULL;
 static ID3D11DeviceContext* g_pd3dDeviceContext = NULL;
@@ -143,7 +160,7 @@ int main(int, char**) {
   bool show_another_window = false;
   ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-  ImguiSerializer imguiSerializer;
+  CustomImguiSerializer imguiSerializer;
 
   char* json = R"({
       "player" : [{
