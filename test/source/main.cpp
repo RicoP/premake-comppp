@@ -63,17 +63,17 @@ int main() {
 
   World w;
   w.setDefaultValues();
-  w.player.values[0] = p1;
-  w.player.values[1] = p2;
-  w.player.values[2] = p1;
-  w.player.values[3] = p2;
-  w.player.values[3].state = Player::State::Active | Player::State::Jumping;
+  w.player.elements[0] = p1;
+  w.player.elements[1] = p2;
+  w.player.elements[2] = p1;
+  w.player.elements[3] = p2;
+  w.player.elements[3].state = Player::State::Active | Player::State::Jumping;
   w.player.size = 4;
 
-  w.scores.values[0] = 1;
-  w.scores.values[1] = 1.3f;
-  w.scores.values[2] = 42;
-  w.scores.values[3] = 3.14f;
+  w.scores.elements[0] = 1;
+  w.scores.elements[1] = 1.3f;
+  w.scores.elements[2] = 42;
+  w.scores.elements[3] = 3.14f;
   w.scores.size = 4;
 
   strcpy(w.title.data, "Hello");
@@ -171,12 +171,12 @@ int main() {
   TEST("-123.5,", -123.5f);
   TEST("1e3,", 1000.0f);
 
-  ros::array<4, int> vec;
+  rose::vector<4, int> vec;
   vec.size = 4;
-  vec.values[0] = 1;
-  vec.values[1] = 2;
-  vec.values[2] = 3;
-  vec.values[3] = 4;
+  vec.elements[0] = 1;
+  vec.elements[1] = 2;
+  vec.elements[2] = 3;
+  vec.elements[3] = 4;
 
   TEST(R"([1,2,3,4])", vec);
   TEST(R"([ 1, 2, 3, 4])", vec);
@@ -187,20 +187,20 @@ int main() {
   TEST("[ 1 , 2 ,   3 ,\r\n   4 ]", vec);
   TEST("[ 1 , 2 ,   3 \r\n,\r\n   4 ]", vec);
 
-  ros::array<4, float> fvec;
+  rose::vector<4, float> fvec;
   fvec.size = 4;
-  fvec.values[0] = 1;
-  fvec.values[1] = 2;
-  fvec.values[2] = 3;
-  fvec.values[3] = 4;
+  fvec.elements[0] = 1;
+  fvec.elements[1] = 2;
+  fvec.elements[2] = 3;
+  fvec.elements[3] = 4;
   TEST(R"([ 1 , 2 ,    3.0 ,   4 ])", fvec);
   TEST(R"([ 1    , 2 ,   3 ,   4 ])", fvec);
   TEST(R"([ 1 , 2 ,   3.0 ,    4 ])", fvec);
   TEST(R"([ 1. , 2 ,   3.0 , 4   ])", fvec);
-  fvec.values[0] = 1000;
-  fvec.values[1] = -2;
-  fvec.values[2] = 1500;
-  fvec.values[3] = 0;
+  fvec.elements[0] = 1000;
+  fvec.elements[1] = -2;
+  fvec.elements[2] = 1500;
+  fvec.elements[3] = 0;
   TEST(R"([1e3, -2e0, 1.5e3, 0e10])", fvec);
 
   TEST(R"({"x" : 1, "y" : 2, "z" : 3})", v);
