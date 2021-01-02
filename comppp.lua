@@ -155,7 +155,8 @@ function execute()
     print(struct .. " -> " .. path)
     file = io.open(path, "w")
 
-    --print("fieldsUnsorted: ", dump(fieldsUnsorted))
+    local include = fieldsUnsorted["__include"]
+    fieldsUnsorted["__include"] = nil
 
     local fields = {}
     for k,v in pairs(fieldsUnsorted) do
@@ -194,70 +195,84 @@ function execute()
       end
     end
 
-    write("struct " .. struct .. " {")
-    for i=1,#fields do
-      local name = fields[i][1]
+    if include == nil then
+      write("struct " .. struct .. " {")
+      for i=1,#fields do
+        local name = fields[i][1]
         local valtype = fields[i][2]
 
-      if enum(valtype) then
-        write('  enum class ' .. firstToUpper(name) .. ' : long long {                        ')
-        write('    None = 0,                                                                  ')
-        local enum_member = valtype:split("|")
-        for i,v in pairs(enum_member) do
-          write('    '.. v ..' = 1 << ' .. i-1 .. ',                                          ')
-        end
-        write('  };                                                                           ')
-        write('  ' .. firstToUpper(name) .. ' ' .. name .. ';')
-      elseif string_type(valtype) ~= 0 then
-        write('  ros::string<' .. string_type(valtype) .. '> ' .. name .. ';')
-      elseif vector(valtype) then
-        write('  rose::vectorPOD<' .. size(valtype) .. ', ' .. vtype(valtype) .. '> ' .. name .. ';')
-      else
-        write('  ' .. valtype .. ' ' .. name .. ';')
-      end
-    end
-
-    --default values
-    write("")
-    write("  void setDefaultValues() {                                        ")
-    write("    std::memset(this, 0, sizeof(" .. struct .. "));                ")
-    for i=1,#fields do
-      local name = fields[i][1]
-      local valtype = fields[i][2]
-      local defaultValue = fields[i][3]
-
-      if defaultValue then
-        write("    " .. name .. " = " .. defaultValue .. ";                   ")
-      else
-        if components[valtype] then
-          -- feld in struct is one of our components. means it has a init method.
-          write("    " .. name .. ".setDefaultValues();")
-        end
-        if vector(valtype) then
-          write("    " .. name .. ".size = 0;                                 ")
+        if enum(valtype) then
+          write('  enum class ' .. firstToUpper(name) .. ' : long long {                        ')
+          write('    None = 0,                                                                  ')
+          local enum_member = valtype:split("|")
+          for i,v in pairs(enum_member) do
+            write('    '.. v ..' = 1 << ' .. i-1 .. ',                                          ')
+          end
+          write('  };                                                                           ')
+          write('  ' .. firstToUpper(name) .. ' ' .. name .. ';')
+        elseif string_type(valtype) ~= 0 then
+          write('  ros::string<' .. string_type(valtype) .. '> ' .. name .. ';')
+        elseif vector(valtype) then
+          write('  rose::vectorPOD<' .. size(valtype) .. ', ' .. vtype(valtype) .. '> ' .. name .. ';')
+        else
+          write('  ' .. valtype .. ' ' .. name .. ';')
         end
       end
-    end
-    write("  }")
 
-    --equals
-    write("")
-    write('  bool equals(const '.. struct ..' & rhs) const {                  ')
-    write('    return                                                         ')
-    write_no_new_line('                                                       ')
-    for i=1,#fields do
-      local name = fields[i][1]
+      --default values
+      write("")
+      write("  void setDefaultValues() {                                        ")
+      write("    std::memset(this, 0, sizeof(" .. struct .. "));                ")
+      for i=1,#fields do
+        local name = fields[i][1]
+        local valtype = fields[i][2]
+        local defaultValue = fields[i][3]
 
-      if i ~= 1 then
-        write(" &&")
+        if defaultValue then
+          write("    " .. name .. " = " .. defaultValue .. ";                   ")
+        else
+          if components[valtype] then
+            -- feld in struct is one of our components. means it has a init method.
+            write("    //" .. name .. ".setDefaultValues(); //TODO: implement me")
+          end
+          if vector(valtype) then
+            write("    " .. name .. ".size = 0;                                 ")
+          end
+        end
       end
-      write_no_new_line("      " .. name .. " == rhs." .. name)
+      write("  }")
+
+      --equals
+      write("")
+      write('  bool equals(const '.. struct ..' & rhs) const {                  ')
+      write('    return                                                         ')
+      write_no_new_line('                                                       ')
+      for i=1,#fields do
+        local name = fields[i][1]
+
+        if i ~= 1 then
+          write(" &&")
+        end
+        write_no_new_line("      " .. name .. " == rhs." .. name)
+      end
+      write(';                                                                  ')
+      write('  }                                                                ')
+      write('};                                                                 ')
+      write('')
+      --struct end
+
+      write('inline bool operator==(const '.. struct ..' &lhs, const '.. struct ..' &rhs) { ')
+      write('  return lhs.equals(rhs);                                                      ')
+      write('}                                                                              ')
+      write('')
+      write('inline bool operator!=(const '.. struct ..' &lhs, const '.. struct ..' &rhs) { ')
+      write('  return !lhs.equals(rhs);                                                     ')
+      write('}                                                                              ')
+    else
+      write("")
+      write("#include <" .. include .. ">")
+      write("")
     end
-    write(';                                                                  ')
-    write('  }                                                                ')
-    write('};                                                                 ')
-    write('')
-    --struct end
 
     --ENUM OPERATOS
     for i=1,#fields do
@@ -317,14 +332,6 @@ function execute()
       end
     end
 
-    write('inline bool operator==(const '.. struct ..' &lhs, const '.. struct ..' &rhs) { ')
-    write('  return lhs.equals(rhs);                                                      ')
-    write('}                                                                              ')
-    write('')
-    write('inline bool operator!=(const '.. struct ..' &lhs, const '.. struct ..' &rhs) { ')
-    write('  return !lhs.equals(rhs);                                                     ')
-    write('}                                                                              ')
-
     write('')
     write('///////////////////////////////////////////////////////////////////     ')
     write('// serializer                                                    //     ')
@@ -346,7 +353,11 @@ function execute()
     write('// deserializer                                                  //')
     write('///////////////////////////////////////////////////////////////////')
     write('inline void deserialize('.. struct ..' &o, IDeserializer &s) {     ')
-    write('  o.setDefaultValues();                                            ')
+    if include == nil then
+      write('  o.setDefaultValues();                                          ')
+    else
+      write('  //o.setDefaultValues(); // TODO: make this a external method.  ')
+    end
     write('  while (s.next_key()) {                                           ')
     write('    switch (s.hash_key()) {                                        ')
     for i=1,#fields do
@@ -444,6 +455,15 @@ function m.add(obj)
   components = state.objects
   print("add object to " .. state.current)
 end
+
+function m.add_value_type(include, obj)
+  obj.__include = include
+  state.objects[state.current] = obj
+  components = state.objects
+  print("add object to " .. state.current)
+end
+
+
 
 function m.generate()
   print("Generating...")

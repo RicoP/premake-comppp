@@ -36,7 +36,8 @@ class IDeserializer {
   virtual void do_bool(bool &) = 0;
   virtual void do_float(float &) = 0;
   virtual void do_int(int &) = 0;
-  // virtual void do_long(long long &) = 0;
+  virtual void do_long(long long &) = 0;
+  virtual void do_ulong(unsigned long long &) = 0;
 };
 
 class ISerializer {
@@ -57,7 +58,8 @@ class ISerializer {
   virtual void do_bool(bool &) = 0;
   virtual void do_float(float &) = 0;
   virtual void do_int(int &) = 0;
-  // virtual void do_long(long long) = 0;
+  virtual void do_long(long long &) = 0;
+  virtual void do_ulong(unsigned long long &) = 0;
 
   virtual void node_end() = 0;
 
@@ -79,6 +81,12 @@ inline void deserialize(bool &b, IDeserializer &d) { d.do_bool(b); }
 inline void serialize(int &i, ISerializer &s) { s.do_int(i); }
 inline void deserialize(int &i, IDeserializer &d) { d.do_int(i); }
 
+inline void serialize(long long &i, ISerializer &s) { s.do_long(i); }
+inline void deserialize(long long &i, IDeserializer &d) { d.do_long(i); }
+
+inline void serialize(unsigned long long &i, ISerializer &s) { s.do_ulong(i); }
+inline void deserialize(unsigned long long &i, IDeserializer &d) { d.do_ulong(i); }
+
 inline void serialize(float &f, ISerializer &s) { s.do_float(f); }
 inline void deserialize(float &f, IDeserializer &d) { d.do_float(f); }
 
@@ -90,6 +98,16 @@ inline void randomize(float &o, ros::hash_value &h) {
 inline void randomize(int &o, ros::hash_value &h) {
   ros::next(h);
   o = (int)(h % 100);
+}
+
+inline void randomize(long long &o, ros::hash_value &h) {
+  ros::next(h);
+  o = (long long)(h % 100);
+}
+
+inline void randomize(unsigned long long &o, ros::hash_value &h) {
+  ros::next(h);
+  o = (unsigned long long)(h % 100);
 }
 
 inline void randomize(bool &o, ros::hash_value &h) {
