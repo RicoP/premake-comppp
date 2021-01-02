@@ -17,10 +17,12 @@ struct JsonSerializer : public ISerializer {
   template <class T, class... Ts>
   void put(T a, Ts... bcd)  { put(a); put(bcd...);                            }
   void put(const char* str) { fprintf(file, "%s", str);                       }
+  void put(    long long l) { fprintf(file, "%lld", l);                       }
   void put(      char* str) { fprintf(file, "%s", str);                       }
   void put(        float f) { fprintf(file, "%g", f);                         }
   void put(         char c) { fprintf(file, "%c", c);                         }
   void put(          int i) { fprintf(file, "%d", i);                         }
+  void put(unsigned long long l) { fprintf(file, "%llu", l);                  }
   void print_indent()       { put("\n", whitespace + 128 - indent_depth * 2); }
 
   bool is_ascii(char c) {
@@ -104,6 +106,8 @@ struct JsonSerializer : public ISerializer {
   virtual void do_float(float &f)        override { queue_char(',');                              put(f);                            }
   virtual void do_bool(bool &b)          override { queue_char(',');                              put(b?"true":"false");             }
   virtual void do_int(int &i)            override { queue_char(',');                              put(i);                            }
+  virtual void do_long(long long &i)     override { queue_char(',');                              put(i);                            }
+  virtual void do_ulong(unsigned long long &i) override { queue_char(',');                        put(i);                            }
 
   virtual void node_end()                override { }
 
@@ -300,8 +304,13 @@ struct JsonDeserializer : public IDeserializer {
     i = (int)strtol(_p, &_p, 10);
   }
 
-  /*virtual void do_long(long long& i) override {
+  virtual void do_long(long long& i) override {
     trim();
     i = strtoll(_p, &_p, 10);
-  }*/
+  }
+
+  virtual void do_ulong(unsigned long long& i) override {
+    trim();
+    i = (unsigned long long)strtoll(_p, &_p, 10);
+  }
 };

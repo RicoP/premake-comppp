@@ -42,6 +42,21 @@ struct ImguiSerializer : public ISerializer {
   virtual void do_bool(bool &b) override { ImGui::Checkbox(_key_name, &b); }
   virtual void do_float(float &f) override { ImGui::InputFloat(_key_name, &f); }
   virtual void do_int(int &i) override { ImGui::InputInt(_key_name, &i); }
-  virtual void node_end() override { depth--; if(depth != 0) ImGui::TreePop(); }
+  virtual void do_long(long long &l) override {
+    int i = (int)l;
+    if (ImGui::InputInt(_key_name, &i)) {
+      l = i;
+    }
+  }
+  virtual void do_ulong(unsigned long long &l) override {
+    int i = (int)l;
+    if (ImGui::InputInt(_key_name, &i)) {
+      l = i;
+    }
+  }
+  virtual void node_end() override {
+    depth--;
+    if (depth != 0) ImGui::TreePop();
+  }
   virtual void end() override { }
 };

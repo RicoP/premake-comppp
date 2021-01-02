@@ -219,29 +219,6 @@ function execute()
         end
       end
 
-      --default values
-      write("")
-      write("  void setDefaultValues() {                                        ")
-      write("    std::memset(this, 0, sizeof(" .. struct .. "));                ")
-      for i=1,#fields do
-        local name = fields[i][1]
-        local valtype = fields[i][2]
-        local defaultValue = fields[i][3]
-
-        if defaultValue then
-          write("    " .. name .. " = " .. defaultValue .. ";                   ")
-        else
-          if components[valtype] then
-            -- feld in struct is one of our components. means it has a init method.
-            write("    //" .. name .. ".setDefaultValues(); //TODO: implement me")
-          end
-          if vector(valtype) then
-            write("    " .. name .. ".size = 0;                                 ")
-          end
-        end
-      end
-      write("  }")
-
       --equals
       write("")
       write('  bool equals(const '.. struct ..' & rhs) const {                  ')
@@ -258,6 +235,29 @@ function execute()
       write(';                                                                  ')
       write('  }                                                                ')
       write('};                                                                 ')
+      --default values
+      write("")
+      write("inline void construct_defaults(".. struct .." & o) {                    ")
+      write("  std::memset(&o, 0, sizeof(" .. struct .. "));                  ")
+      for i=1,#fields do
+        local name = fields[i][1]
+        local valtype = fields[i][2]
+        local defaultValue = fields[i][3]
+
+        if defaultValue then
+          write("  o." .. name .. " = " .. defaultValue .. ";                 ")
+        else
+          if components[valtype] then
+            -- feld in struct is one of our components. means it has a init method.
+            write("  construct_defaults(o." .. name .. ");                    ")
+          end
+          if vector(valtype) then
+            write("  o." .. name .. ".size = 0;                               ")
+          end
+        end
+      end
+      write("}")
+
       write('')
       --struct end
 
@@ -353,11 +353,8 @@ function execute()
     write('// deserializer                                                  //')
     write('///////////////////////////////////////////////////////////////////')
     write('inline void deserialize('.. struct ..' &o, IDeserializer &s) {     ')
-    if include == nil then
-      write('  o.setDefaultValues();                                          ')
-    else
-      write('  //o.setDefaultValues(); // TODO: make this a external method.  ')
-    end
+    write('  construct_defaults(o);                                           ')
+    write('                                                                   ')
     write('  while (s.next_key()) {                                           ')
     write('    switch (s.hash_key()) {                                        ')
     for i=1,#fields do
