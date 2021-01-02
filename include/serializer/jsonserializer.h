@@ -311,6 +311,6 @@ struct JsonDeserializer : public IDeserializer {
 
   virtual void do_ulong(unsigned long long& i) override {
     trim();
-    i = (unsigned long long)strtoll(_p, &_p, 10);
+    i = strtoull(_p, &_p, 10);
   }
 };
