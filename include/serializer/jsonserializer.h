@@ -219,7 +219,7 @@ struct JsonDeserializer : public IDeserializer {
     return true;
   }
 
-  virtual void skip_key() override { /*TODO*/ }
+  virtual void skip_key() override { assert(false); /*TODO*/ }
 
   virtual bool in_array() override {
     char c = current();

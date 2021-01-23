@@ -117,12 +117,17 @@ inline void randomize(bool &o, ros::hash_value &h) {
 
 template <size_t N, class T>
 inline void randomize(rose::vectorPOD<N, T> &o, ros::hash_value &h) {
-  ros::next(h);
-
   size_t length = h % N;
   o.size = length;
   for (size_t i = 0; i != length; ++i) {
     randomize(o.elements[i], h);
+  }
+}
+
+template <size_t N, class T>
+inline void randomize(T (&o)[N], ros::hash_value &h) {
+  for (size_t i = 0; i != N; ++i) {
+    randomize(o[i], h);
   }
 }
 
@@ -136,6 +141,18 @@ inline void randomize(ros::string<N> &o, ros::hash_value &h) {
   for (size_t i = 0; i != length; ++i) {
     ros::next(h);
     o.data[i] = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"[h % 51];
+  }
+}
+
+template <size_t N, class T>
+inline void serialize(T (&o)[N], ISerializer &s) {
+  if (s.begin_array()) {
+    for (size_t i = 0; i != N; ++i) {
+      // assert(i < N);
+      s.in_array(i);
+      serialize(o[i], s);
+    }
+    s.end_array();
   }
 }
 
@@ -158,5 +175,15 @@ inline void deserialize(rose::vectorPOD<N, T> &o, IDeserializer &d) {
     // assert(o.size < N);
     deserialize(o.elements[o.size], d);
     ++o.size;
+  }
+}
+
+template <size_t N, class T>
+inline void deserialize(T (&o)[N], IDeserializer &d) {
+  size_t size = 0;
+  while (d.in_array() && size != N) {
+    // assert(o.size < N);
+    deserialize(o[size], d);
+    ++size;
   }
 }
