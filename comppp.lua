@@ -27,6 +27,25 @@ function dump(o)
    end
 end
 
+function keys(tab)
+  local keyset = {}
+  for k,v in pairs(tab) do
+    keyset[#keyset + 1] = k
+  end
+  table.sort(keyset)
+  return keyset
+end
+
+--https://gist.github.com/FGRibreau/3790217
+function tab_filter(t, filterIter)
+  local out = {}
+  print(t)
+  for k, v in pairs(t) do
+    if filterIter(v, k, t) then out[k] = v end
+  end
+  return out
+end
+
 --https://help.interfaceware.com/code/details/stringutil-lua
 function trimRight(s)
    return s:match('^(.-)%s*$')
@@ -438,6 +457,85 @@ function execute()
   end
 end
 
+function create_world(name, comps)
+  if comps == nil then
+    comps = tab_filter(keys(components), function (v)
+      --return components[v].__include == nil
+      --HACK primitive types are always lowercase?
+      return v ~= v:lower()
+    end)
+  end
+
+  function pluralize(name)
+    return name:lower() .. "s"
+  end
+
+
+  local path = state.dir .. "/" .. name:lower() .. ".h"
+  print("world ", struct, " -> ", path)
+  file = io.open(path, "w")
+
+  write("#pragma once                                                                                        ")
+  write("")
+  write("#include <game/components/entity.h>                                                                 ")
+  for k,name in pairs(comps) do
+    write("#include <game/components/" .. name:lower() .. ".h> ")
+  end
+  write("#include <game/components/transform.h>                                                              ")
+  write("#include <game/components/camera.h>                                                                 ")
+  write("#include <ros/nocopy.h>                                                                             ")
+  write("")
+  write("struct World : ros::nocopy {                                                                        ")
+  write("  //entity                                                                                          ")
+  write("  std::vector<Entity> entities;                                                                     ")
+  write("  //std::vector<Entity> entitiyParent; //Does this make sense?                                      ")
+  write("  std::vector<unsigned int> generation; // = fill({~0});                                            ")
+  write("  std::vector<Entity::Status> status; // = fill({Stats::Dead}); fill doesnt work like that          ")
+  write("")
+  write("  //component indice                                                                                ")
+  write("  std::vector<int> transform_index; //  = {-1};                                                     ")
+  write("  std::vector<int> camera_index; //  = {-1};                                                        ")
+  write("")
+  for k,name in pairs(comps) do
+    write("  std::vector<" .. name .. "> " .. pluralize(name) .. "; ")
+  end
+  write("")
+  -- TODO
+  write("  //WorldSystem worlsSystem;                                                                        ")
+  write("  //RenderSystem renderSystem;                                                                      ")
+  write("")
+  write("  //Component getter                                                                                ")
+  write("  template<typename T>                                                                              ")
+  write("  T & get(Entity entity); //Not implemented -> unknown type                                         ")
+  write("  template<typename T>                                                                              ")
+  write("  const T & get(Entity entity) const; //Not implemented -> unknown type                             ")
+  for k,name in pairs(comps) do
+    local lname = name:lower()
+    local names = pluralize(name)
+    local name_index = lname .. "_index"
+    write("")
+    write("  //get " .. name)
+    write("  template<>")
+    write("  inline " .. name .. " & get<" .. name .. ">(Entity entity) {")
+    write("    assert(" .. names .. "[entity." .. name_index .. "].entity == entity);")
+    write("    return " .. names .. "[entity." .. name_index .. "];")
+    write("  }")
+    write("  template<>")
+    write("  inline const " .. name .. " & get<" .. name .. ">(Entity entity) const {")
+    write("    assert(" .. names .. "[entity." .. name_index .. "].entity == entity);")
+    write("    return " .. names .. "[entity." .. name_index .. "];")
+    write("  }")
+  end
+  write("")
+  write("  //utility                                                                                         ")
+  write("  bool is_valid(const Entity & entity) const {                                                      ")
+  write("    return generation[entity.idx] == entity.gen && status[entity.idx] == Entity::Status::Alive;     ")
+  write("  }                                                                                                 ")
+  write("};                                                                                                  ")
+
+  print(comps)
+end
+
 function m.targetdir(dir)
   state.dir = dir
 end
@@ -460,7 +558,9 @@ function m.add_value_type(include, obj)
   print("add object to " .. state.current)
 end
 
-
+function m.world(name, comps)
+  create_world(name, comps)
+end
 
 function m.generate()
   print("Generating...")
