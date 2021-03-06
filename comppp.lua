@@ -46,6 +46,12 @@ function tab_filter(t, filterIter)
   return out
 end
 
+function is_primitive(v)
+  --return components[v].__include == nil
+  --HACK primitive types are always lowercase?
+  return v ~= v:lower()
+end
+
 --https://help.interfaceware.com/code/details/stringutil-lua
 function trimRight(s)
    return s:match('^(.-)%s*$')
@@ -177,6 +183,11 @@ function execute()
     local include = fieldsUnsorted["__include"]
     fieldsUnsorted["__include"] = nil
 
+    if not include then
+      assert(fieldsUnsorted["entity"] == nil, "can't have a field called entity")
+      fieldsUnsorted["entity"] = {"rose::Entity"}
+    end
+
     local fields = {}
     for k,v in pairs(fieldsUnsorted) do
       local e = {}
@@ -204,6 +215,7 @@ function execute()
     write('///////////////////////////////////////////////////////////////////')
     write('#pragma once                                                       ')
     write('#include <serializer/serializer.h>                                 ')
+    write('#include <rose/ecs.h>                                              ')
     write('                                                                   ')
 
     for _,compA in pairs(fields) do
@@ -459,11 +471,7 @@ end
 
 function create_world(name, comps)
   if comps == nil then
-    comps = tab_filter(keys(components), function (v)
-      --return components[v].__include == nil
-      --HACK primitive types are always lowercase?
-      return v ~= v:lower()
-    end)
+    comps = tab_filter(keys(components), is_primitive)
   end
 
   function pluralize(name)
