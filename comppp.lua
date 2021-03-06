@@ -46,10 +46,20 @@ function tab_filter(t, filterIter)
   return out
 end
 
-function is_primitive(v)
+function is_non_primitive(v)
   --return components[v].__include == nil
   --HACK primitive types are always lowercase?
-  return v ~= v:lower()
+  if v == "TextureAssetRef" then return false end
+  if v == "ShaderAssetRef"  then return false end
+  if v == "SoundAssetRef"   then return false end
+  if v == "MeshAssetRef"    then return false end
+  if v == "ObjectID"        then return false end
+  if v == v:lower()         then return false end
+  return true
+end
+
+function is_primitive(v)
+  return not is_non_primitive(v)
 end
 
 --https://help.interfaceware.com/code/details/stringutil-lua
@@ -471,7 +481,7 @@ end
 
 function create_world(name, comps)
   if comps == nil then
-    comps = tab_filter(keys(components), is_primitive)
+    comps = tab_filter(keys(components), is_non_primitive)
   end
 
   function pluralize(name)
@@ -489,20 +499,22 @@ function create_world(name, comps)
   for k,name in pairs(comps) do
     write("#include <game/components/" .. name:lower() .. ".h> ")
   end
-  write("#include <game/components/transform.h>                                                              ")
-  write("#include <game/components/camera.h>                                                                 ")
   write("#include <ros/nocopy.h>                                                                             ")
+  write("#include <rose/ecs.h>                                                                             ")
+  write("#include <vector>                                                                             ")
   write("")
   write("struct World : ros::nocopy {                                                                        ")
   write("  //entity                                                                                          ")
-  write("  std::vector<Entity> entities;                                                                     ")
-  write("  //std::vector<Entity> entitiyParent; //Does this make sense?                                      ")
+  write("  std::vector<rose::Entity> entities;                                                                     ")
+  write("  //std::vector<rose::Entity> entitiyParent; //Does this make sense?                                      ")
   write("  std::vector<unsigned int> generation; // = fill({~0});                                            ")
-  write("  std::vector<Entity::Status> status; // = fill({Stats::Dead}); fill doesnt work like that          ")
+  write("  std::vector<rose::Entity::Status> status; // = fill({Stats::Dead}); fill doesnt work like that          ")
   write("")
   write("  //component indice                                                                                ")
-  write("  std::vector<int> transform_index; //  = {-1};                                                     ")
-  write("  std::vector<int> camera_index; //  = {-1};                                                        ")
+  for k,name in pairs(comps) do
+    --write("  std::vector<int> camera_index; //  = {-1};                                                        ")
+    write("  std::vector<int> " .. name:lower() .. "_index; ")
+  end
   write("")
   for k,name in pairs(comps) do
     write("  std::vector<" .. name .. "> " .. pluralize(name) .. "; ")
@@ -514,30 +526,42 @@ function create_world(name, comps)
   write("")
   write("  //Component getter                                                                                ")
   write("  template<typename T>                                                                              ")
-  write("  T & get(Entity entity); //Not implemented -> unknown type                                         ")
+  write("  T & get(rose::Entity entity); //Not implemented -> unknown type                                         ")
   write("  template<typename T>                                                                              ")
-  write("  const T & get(Entity entity) const; //Not implemented -> unknown type                             ")
+  write("  const T & get(rose::Entity entity) const; //Not implemented -> unknown type                             ")
   for k,name in pairs(comps) do
+    if is_primitive(name) then goto continue end
     local lname = name:lower()
     local names = pluralize(name)
     local name_index = lname .. "_index"
     write("")
     write("  //get " .. name)
     write("  template<>")
-    write("  inline " .. name .. " & get<" .. name .. ">(Entity entity) {")
-    write("    assert(" .. names .. "[entity." .. name_index .. "].entity == entity);")
-    write("    return " .. names .. "[entity." .. name_index .. "];")
+    write("  [[nodiscard]] " .. name .. " & get<" .. name .. ">(rose::Entity entity) {               ")
+    --write("    assert(" .. names .. "[entity." .. name_index .. "].entity == entity);")
+    --write("    return " .. names .. "[entity." .. name_index .. "];")
+    write("    assert(entity.index >= 0);                                                      ")
+    write("    assert(" .. name_index .. ".size() < entity.index);                             ")
+    write("    assert(" .. names .. ".size() < " .. name_index .. "[entity.index]);            ")
+    write("    assert(" .. names .. "[" .. name_index .. "[entity.index]].entity == entity);   ")
+    write("    return " .. names .. "[" .. name_index .. "[entity.index]];                     ")
+
+
     write("  }")
     write("  template<>")
-    write("  inline const " .. name .. " & get<" .. name .. ">(Entity entity) const {")
-    write("    assert(" .. names .. "[entity." .. name_index .. "].entity == entity);")
-    write("    return " .. names .. "[entity." .. name_index .. "];")
+    write("  [[nodiscard]] const " .. name .. " & get<" .. name .. ">(rose::Entity entity) const {")
+    write("    assert(entity.index >= 0);                                                      ")
+    write("    assert(" .. name_index .. ".size() < entity.index);                             ")
+    write("    assert(" .. names .. ".size() < " .. name_index .. "[entity.index]);            ")
+    write("    assert(" .. names .. "[" .. name_index .. "[entity.index]].entity == entity);   ")
+    write("    return " .. names .. "[" .. name_index .. "[entity.index]];                     ")
     write("  }")
+    ::continue::
   end
   write("")
   write("  //utility                                                                                         ")
-  write("  bool is_valid(const Entity & entity) const {                                                      ")
-  write("    return generation[entity.idx] == entity.gen && status[entity.idx] == Entity::Status::Alive;     ")
+  write("  [[nodiscard]] bool is_valid(const rose::Entity & entity) const {                                                      ")
+  write("    return generation[entity.index] == entity.generation && status[entity.index] == rose::Entity::Status::Alive;     ")
   write("  }                                                                                                 ")
   write("};                                                                                                  ")
 
