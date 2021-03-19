@@ -539,7 +539,7 @@ function create_world(name, comps)
   write("  }")
 
   write("")
-  -- TODO
+  write("  //TODO: implement systems                                                        ")
   write("  //WorldSystem worlsSystem;                                                       ")
   write("  //RenderSystem renderSystem;                                                     ")
   write("                                                                                   ")
@@ -550,30 +550,29 @@ function create_world(name, comps)
   write("  const T & get(rose::ecs::Entity entity) const; //Not implemented -> unknown type ")
   write("  template <typename T>                                                            ")
   write("  T& attach_component(rose::ecs::Entity entity);                                   ")
+  write("};")
+  write("")
 
   for k,name in pairs(comps) do
     if is_primitive(name) then goto continue end
     local lname = name:lower()
     local names = pluralize(name)
     local name_index = lname .. "_index"
+    write("// template specialization " .. name)
+    write("template <> [[nodiscard]] inline " .. name .. "& World::attach_component<" .. name .. ">(rose::ecs::Entity entity) { ")
+    write("  return attach_component_to_vector(" .. name_index .. ", " .. names .. ", entity);                                  ")
+    write("}                                                                                                                    ")
     write("")
-    write("  template <> [[nodiscard]] " .. name .. "& attach_component<" .. name .. ">(rose::ecs::Entity entity) {                      ")
-    write("    return attach_component_to_vector(" .. name_index .. ", " .. names .. ", entity);                             ")
-    write("  }                                                                                                     ")
+    write("template <> [[nodiscard]] inline const " .. name .. "& World::get<" .. name .. ">(rose::ecs::Entity entity) const {  ")
+    write("  return get_component(" .. name_index .. ", " .. names .. ", entity);                                               ")
+    write("}                                                                                                                    ")
     write("")
-    write("  // get " .. name)
-    write("  template <> [[nodiscard]] " .. name .. "& get<" .. name .. ">(rose::ecs::Entity entity) {             ")
-    write("    return get_component(" .. name_index .. ", " .. names .. ", entity);                                ")
-    write("  }                                                                                                     ")
+    write("template <> [[nodiscard]] inline " .. name .. "& World::get<" .. name .. ">(rose::ecs::Entity entity) {              ")
+    write("  return get_component(" .. name_index .. ", " .. names .. ", entity);                                               ")
+    write("}                                                                                                                    ")
     write("")
-    write("  template <> [[nodiscard]] const " .. name .. "& get<" .. name .. ">(rose::ecs::Entity entity) const { ")
-    write("    return get_component(" .. name_index .. ", " .. names .. ", entity);                                ")
-    write("  }                                                                                                     ")
     ::continue::
   end
-  write("};")
-
-  print(comps)
 end
 
 function m.targetdir(dir)
