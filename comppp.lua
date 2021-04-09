@@ -201,7 +201,8 @@ function execute()
 
     if not include then
       assert(fieldsUnsorted["entity"] == nil, "can't have a field called entity")
-      fieldsUnsorted["entity"] = {"rose::ecs::Entity"}
+      -- TODO put this back in for ECS
+      -- fieldsUnsorted["entity"] = {"rose::ecs::Entity"}
     end
 
     local fields = {}
