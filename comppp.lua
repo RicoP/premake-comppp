@@ -238,7 +238,7 @@ function execute()
       local comp = vtype(compA[2])
       local is_component = components[comp] ~= nil
       if is_component then
-        write('#include <game/components/' .. comp:lower() .. '.h>')
+        write('#include <components/' .. comp:lower() .. '.h>')
       end
     end
 
@@ -478,8 +478,13 @@ function execute()
   write('')
   write('#pragma once')
   write('')
+
+  write('')
+  write('#include <components/computils.h>                 ')
+  write('')
+
   for _,struct in pairs(graph:sort()) do
-    write('#include "components/' .. struct:lower() .. '.h"                 ')
+    write('#include <components/' .. struct:lower() .. '.h>                 ')
   end
 end
 

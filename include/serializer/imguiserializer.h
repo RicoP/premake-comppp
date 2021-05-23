@@ -1,6 +1,7 @@
 #pragma once
 
 #include "serializer.h"
+#include <game/util/mathhelper.h>
 
 struct ImguiSerializer : public ISerializer {
   ros::hash_value _type_hash = 0;
