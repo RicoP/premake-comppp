@@ -110,15 +110,19 @@ end
 -- int -> int
 -- vector3 -> vector3
 -- float[3] -> float
+-- vector3[3] -> vector3
 function vtype(type)
   if(type:match("%[%d+%]")) then
-    return type:match "%a+"
+    t,_ = type:match("(.+)%[(.+)")
+    return t
   end
   return type
 end
+
 assert(vtype("int") == "int")
 assert(vtype("vector3") == "vector3")
 assert(vtype("float[3]") == "float")
+assert(vtype("vector3[16]") == "vector3")
 
 -- int -> int
 -- vector3 -> vector3
