@@ -93,7 +93,7 @@ struct JsonSerializer : public ISerializer {
     queued[indent_depth] = c;
   }
 
-  virtual bool node_begin(const char *, ros::hash_value, void *) override { queue_char(',');      indent(); put("{");                return true; }
+  virtual bool node_begin(const char *, rose::hash_value, void *) override { queue_char(',');      indent(); put("{");                return true; }
 
   virtual void key(const char* name)     override { queue_char(',');             print_indent();  put("\"", name, "\" : "); clear(); }
   virtual bool begin_array()             override { queue_char(',');   indent();                  put("[");                          return true; }
@@ -192,7 +192,7 @@ struct JsonDeserializer : public IDeserializer {
     expect('\"');
     char* end = seek('\"');
     if (*end != 0) {
-      _name_hash = ros::hash_fnv(_p, end);
+      _name_hash = rose::hash_fnv(_p, end);
       _p = end + 1;
       return true;
     }
@@ -214,7 +214,7 @@ struct JsonDeserializer : public IDeserializer {
     }
 
     char* end = seek(" \t|\"\n");
-    _name_hash = ros::hash_fnv(_p, end);
+    _name_hash = rose::hash_fnv(_p, end);
     _p = end;
     return true;
   }

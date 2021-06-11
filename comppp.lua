@@ -247,6 +247,8 @@ function execute()
     end
 
     if include == nil then
+      write('namespace rose {                                                   ')
+      write('namespace ecs {                                                    ')
       write("struct " .. struct .. " {")
       for i=1,#fields do
         local name = fields[i][1]
@@ -262,7 +264,7 @@ function execute()
           write('  };                                                                           ')
           write('  ' .. firstToUpper(name) .. ' ' .. name .. ';')
         elseif string_type(valtype) ~= 0 then
-          write('  ros::string<' .. string_type(valtype) .. '> ' .. name .. ';')
+          write('  rose::string<' .. string_type(valtype) .. '> ' .. name .. ';')
         elseif vector(valtype) then
           write('  rose::vectorPOD<' .. size(valtype) .. ', ' .. vtype(valtype) .. '> ' .. name .. ';')
         else
@@ -323,6 +325,8 @@ function execute()
       write("")
       write("#include <" .. include .. ">")
       write("")
+      write('namespace rose {                                                   ')
+      write('namespace ecs {                                                    ')
     end
 
     --ENUM OPERATOS
@@ -358,7 +362,7 @@ function execute()
         write('  while (d.in_enum()) {                                                                       ')
         write('    switch (d.hash_key()) {                                                                   ')
         for i,v in pairs(enum_member) do
-          write('      case ros::hash("' .. v .. '"):                                                        ')
+          write('      case rose::hash("' .. v .. '"):                                                        ')
           write('        o |= ' .. E .. '::' .. v .. ';                                                      ')
           write('        break;                                                                              ')
         end
@@ -369,8 +373,8 @@ function execute()
         write('}                                                                                             ')
         write('')
 
-        write('inline void randomize(' .. E .. ' &o, ros::hash_value & h) {                                                       ')
-        write('  h = ros::xor64(h); ')
+        write('inline void randomize(' .. E .. ' &o, rose::hash_value & h) {                                                       ')
+        write('  h = rose::xor64(h); ')
         write('  o = ' .. E .. '::None;                                                                      ')
         write('  switch(h % ' .. #enum_member .. ') {                                                        ')
         for i,v in pairs(enum_member) do
@@ -388,7 +392,7 @@ function execute()
     write('// serializer                                                    //     ')
     write('///////////////////////////////////////////////////////////////////     ')
     write('inline void serialize('.. struct ..' &o, ISerializer &s) {              ')
-    write('  if(s.node_begin("'.. struct ..'", ros::hash("'.. struct ..'"), &o)) { ')
+    write('  if(s.node_begin("'.. struct ..'", rose::hash("'.. struct ..'"), &o)) { ')
     for i=1,#fields do
       local name = fields[i][1]
       write('    s.key("'.. name ..'");                                              ')
@@ -410,7 +414,7 @@ function execute()
     write('    switch (s.hash_key()) {                                        ')
     for i=1,#fields do
       local name = fields[i][1]
-      write('      case ros::hash("' .. name ..'"):                           ')
+      write('      case rose::hash("' .. name ..'"):                           ')
       write('        deserialize(o.' .. name ..', s);                         ')
       write('        break;                                                   ')
     end
@@ -421,22 +425,38 @@ function execute()
 
     write('')
     write('///////////////////////////////////////////////////////////////////')
+    write('// randomize                                                     //')
+    write('///////////////////////////////////////////////////////////////////')
+    write('inline void randomize('.. struct ..' &o, rose::hash_value & h) {    ')
+    for i,field in pairs(fields) do
+      local name = field[1]
+      write('  randomize(o.'.. name ..', h);                                  ')
+    end
+    write('}                                                                  ')
+
+
+    write('} //namespace ecs ')
+    write('')
+    write('///////////////////////////////////////////////////////////////////')
     write('// hashing                                                       //')
     write('///////////////////////////////////////////////////////////////////')
-    write('namespace ros {                                                    ')
-    write('  inline ros::hash_value hash('.. struct ..' &o) {     ')
-    write_no_new_line('    ros::hash_value h =                                ')
+    if include then
+      write('  inline hash_value hash('.. struct ..' &o) {     ')
+    else 
+      write('  inline hash_value hash(ecs::'.. struct ..' &o) {     ')
+    end
+    write_no_new_line('    hash_value h =                                ')
     for i=1,#fields do
       local name = fields[i][1]
       local valtype = fields[i][2]
       if i == 1 then
-        write(' ros::hash(o.'.. name ..');                                    ')
+        write(' hash(o.'.. name ..');                                    ')
       else
-        write('    h = ros::xor64(h);                                         ')
+        write('    h = xor64(h);                                         ')
         if enum(valtype) then
-          write('    h ^= ros::hash((long long)o.' .. name ..');              ')
+          write('    h ^= hash((long long)o.' .. name ..');              ')
         else
-          write('    h ^= ros::hash(o.' .. name ..');                         ')
+          write('    h ^= hash(o.' .. name ..');                         ')
         end
       end
     end
@@ -445,18 +465,7 @@ function execute()
     end
     write('    return h;                                                      ')
     write('  }                                                                ')
-    write('}                                                                  ')
-
-    write('')
-    write('///////////////////////////////////////////////////////////////////')
-    write('// randomize                                                     //')
-    write('///////////////////////////////////////////////////////////////////')
-    write('inline void randomize('.. struct ..' &o, ros::hash_value & h) {    ')
-    for i,field in pairs(fields) do
-      local name = field[1]
-      write('  randomize(o.'.. name ..', h);                                  ')
-    end
-    write('}                                                                  ')
+    write('} //namespace rose                                                 ')
 
     file:close()
   end

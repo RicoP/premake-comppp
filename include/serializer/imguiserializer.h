@@ -4,19 +4,19 @@
 #include <game/util/mathhelper.h>
 
 struct ImguiSerializer : public ISerializer {
-  ros::hash_value _type_hash = 0;
+  rose::hash_value _type_hash = 0;
   const char* _key_name = 0;
   const char* _array_key = 0;
   char _array_full_name[128] = {0};
   int depth = 0;
 
-  virtual bool custom_type(const char *type, ros::hash_value type_hash, void *p) {
+  virtual bool custom_type(const char *type, rose::hash_value type_hash, void *p) {
     return false;
   }
 
-  virtual bool node_begin(const char *type, ros::hash_value type_hash,
+  virtual bool node_begin(const char *type, rose::hash_value type_hash,
                           void *p) override {
-    assert(ros::hash(type) == type_hash);
+    assert(rose::hash(type) == type_hash);
 
     _type_hash = type_hash;
 
