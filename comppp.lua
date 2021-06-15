@@ -215,6 +215,7 @@ function execute()
     -- STRUCT
     write_autogen()
     write('#pragma once                                                       ')
+    write('#include <components/computils.h>                                  ')
     write('#include <serializer/serializer.h>                                 ')
     write('#include <rose/ecs.h>                                              ')
     write('#include <cstring>                                                 ')
