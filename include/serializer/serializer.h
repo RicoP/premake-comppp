@@ -9,16 +9,16 @@ struct string {
   char data[N];
 };
 
+template <size_t N, size_t M>
+inline bool operator==(const rose::string<N> &lhs, const rose::string<M> &rhs) {
+  return strcmp(lhs.data, rhs.data) == 0;
+}
+
 template <size_t N>
 hash_value hash(string<N> s) {
   return hash_fnv(s.data, s.data + N);
 }
 }  // namespace rose
-
-template <size_t N, size_t M>
-inline bool operator==(const rose::string<N> &lhs, const rose::string<M> &rhs) {
-  return strcmp(lhs.data, rhs.data) == 0;
-}
 
 class IDeserializer {
  public:
