@@ -69,8 +69,8 @@ namespace rose {
 namespace ecs {
 
   template <size_t N>
-  inline void serialize(rose::string<N> &o, ISerializer &s) {
-    s.do_string(o.data, o.data + N);
+  inline void serialize(rose::string<N> &o, ISerializer &s, size_t max = N) {
+    s.do_string(o.data, o.data + max);
   }
   template <size_t N>
   inline void deserialize(rose::string<N> &o, IDeserializer &d) {
@@ -147,9 +147,9 @@ namespace ecs {
   }
 
   template <size_t N, class T>
-  inline void serialize(T (&o)[N], ISerializer &s) {
+  inline void serialize(T (&o)[N], ISerializer &s, size_t max = N) {
     if (s.begin_array()) {
-      for (size_t i = 0; i != N; ++i) {
+      for (size_t i = 0; i != max; ++i) {
         // assert(i < N);
         s.in_array(i);
         serialize(o[i], s);
@@ -160,14 +160,7 @@ namespace ecs {
 
   template <size_t N, class T>
   inline void serialize(rose::vectorPOD<N, T> &o, ISerializer &s) {
-    if (s.begin_array()) {
-      for (size_t i = 0; i != o.size; ++i) {
-        // assert(i < N);
-        s.in_array(i);
-        serialize(o.elements[i], s);
-      }
-      s.end_array();
-    }
+    serialize(o.elements, s, o.size);
   }
 
   template <size_t N, class T>
@@ -188,6 +181,11 @@ namespace ecs {
       deserialize(o[size], d);
       ++size;
     }
+  }
+
+  template <size_t N, class T>
+  inline void construct_defaults(rose::vectorPOD<N, T> &o) {
+    o.size = 0;
   }
 
 }  // namespace ecs

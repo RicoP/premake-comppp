@@ -102,12 +102,12 @@ struct JsonSerializer : public ISerializer {
   virtual void write_enum(const char* e) override { if(queue() == 0) put("\"");  queue_char('|'); put(e);                            }
   virtual void end_enum()                override {                                               put("\"");                clear(); }
 
-  virtual void do_string(char* begin, char* end) override { put("\""); decode_string(begin, end); put("\"");                         }
-  virtual void do_float(float &f)        override { queue_char(',');                              put(f);                            }
-  virtual void do_bool(bool &b)          override { queue_char(',');                              put(b?"true":"false");             }
-  virtual void do_int(int &i)            override { queue_char(',');                              put(i);                            }
-  virtual void do_long(long long &i)     override { queue_char(',');                              put(i);                            }
-  virtual void do_ulong(unsigned long long &i) override { queue_char(',');                        put(i);                            }
+  virtual void do_string(char* begin, char* end) override { queue_char(','); put("\""); decode_string(begin, end); put("\"");                         }
+  virtual void do_ulong(unsigned long long &i)   override { queue_char(','); put(i);                            }
+  virtual void do_long(long long &i)             override { queue_char(','); put(i);                            }
+  virtual void do_float(float &f)                override { queue_char(','); put(f);                            }
+  virtual void do_bool(bool &b)                  override { queue_char(','); put(b ? "true" : "false");         }
+  virtual void do_int(int &i)                    override { queue_char(','); put(i);                            }
 
   virtual void node_end()                override { }
 
