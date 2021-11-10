@@ -77,6 +77,16 @@ namespace ecs {
     d.do_string(o.data, o.data + N);
   }
 
+  template <size_t N>
+  inline void serialize(char(&o)[N], ISerializer& s, size_t max = N) {
+    s.do_string(o, o + max);
+  }
+  template <size_t N>
+  inline void deserialize(char(&o)[N], IDeserializer& d) {
+    d.do_string(o, o + N);
+  }
+
+
   inline void serialize(bool &b, ISerializer &s) { s.do_bool(b); }
   inline void deserialize(bool &b, IDeserializer &d) { d.do_bool(b); }
 
@@ -91,6 +101,16 @@ namespace ecs {
 
   inline void serialize(float &f, ISerializer &s) { s.do_float(f); }
   inline void deserialize(float &f, IDeserializer &d) { d.do_float(f); }
+
+  inline void serialize(char& c, ISerializer& s) {
+    char str[2] = { c, 0 };
+    serialize(str, s);
+  }
+  inline void deserialize(char& c, IDeserializer& d) {
+    char str[2] = { 0 };
+    deserialize(str, d);
+    c = str[0];
+  }
 
   inline void randomize(float &o, rose::hash_value &h) {
     rose::next(h);
@@ -158,6 +178,16 @@ namespace ecs {
     }
   }
 
+  template <class T>
+  inline void serialize(std::vector<T> & v, ISerializer& s) {
+    if (s.begin_array()) {
+      for (auto & o : v) {
+        serialize(o, s);
+      }
+      s.end_array();
+    }
+  }
+
   template <size_t N, class T>
   inline void serialize(rose::vectorPOD<N, T> &o, ISerializer &s) {
     serialize(o.elements, s, o.size);
@@ -180,6 +210,15 @@ namespace ecs {
       // assert(o.size < N);
       deserialize(o[size], d);
       ++size;
+    }
+  }
+
+  template <class T>
+  inline void deserialize(std::vector<T> & v, IDeserializer& d) {
+    v.clear();
+    while (d.in_array()) {
+      auto& o = v.emplace_back();
+      deserialize(o, d);
     }
   }
 
