@@ -78,14 +78,13 @@ namespace ecs {
   }
 
   template <size_t N>
-  inline void serialize(char(&o)[N], ISerializer& s, size_t max = N) {
+  inline void serialize(char(&o)[N], ISerializer & s, size_t max = N) {
     s.do_string(o, o + max);
   }
   template <size_t N>
-  inline void deserialize(char(&o)[N], IDeserializer& d) {
+  inline void deserialize(char(&o)[N], IDeserializer & d) {
     d.do_string(o, o + N);
   }
-
 
   inline void serialize(bool &b, ISerializer &s) { s.do_bool(b); }
   inline void deserialize(bool &b, IDeserializer &d) { d.do_bool(b); }

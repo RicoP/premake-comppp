@@ -73,6 +73,7 @@ struct JsonSerializer : public ISerializer {
                 case '\b': put("\\b"); break;
                 case '\f': put("\\f"); break;
                 case '\t': put("\\t"); break;
+                case '\"': put("\\\""); break;
                 default:
                     printf("\\u00%02X", c); break;
             }
