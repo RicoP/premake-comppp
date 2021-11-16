@@ -2,6 +2,7 @@
 
 #include <rose/container.h>
 #include <rose/hash.h>
+#include <vector>
 
 namespace rose {
 template <size_t N>
