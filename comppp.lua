@@ -424,9 +424,9 @@ function execute()
     write('// hashing                                                       //')
     write('///////////////////////////////////////////////////////////////////')
     if include then
-      write('  inline hash_value hash('.. struct ..' &o) {     ')
+      write('  inline hash_value hash(const '.. struct ..' &o) {     ')
     else 
-      write('  inline hash_value hash(ecs::'.. struct ..' &o) {     ')
+      write('  inline hash_value hash(const ecs::'.. struct ..' &o) {     ')
     end
     write_nonl('    hash_value h =                                ')
     for i=1,#fields do
