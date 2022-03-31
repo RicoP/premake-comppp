@@ -20,7 +20,7 @@ struct JsonSerializer : public ISerializer {
   void put(    long long l) { fprintf(file, "%lld", l);                       }
   void put(      char* str) { fprintf(file, "%s", str);                       }
   void put(        float f) { fprintf(file, "%g", f);                         }
-  void put(         char c) { fprintf(file, "%c", c);                         }
+  void put(         char c) { fputc(c, file);                                 }
   void put(          int i) { fprintf(file, "%d", i);                         }
   void put(unsigned long long l) { fprintf(file, "%llu", l);                  }
   void print_indent()       { put("\n", whitespace + 128 - indent_depth * 2); }
@@ -103,7 +103,7 @@ struct JsonSerializer : public ISerializer {
   virtual void write_enum(const char* e) override { if(queue() == 0) put("\"");  queue_char('|'); put(e);                            }
   virtual void end_enum()                override {                                               put("\"");                clear(); }
 
-  virtual void do_string(char* begin, char* end) override { queue_char(','); put("\""); decode_string(begin, end); put("\"");                         }
+  virtual void do_string(char* begin, char* end) override { queue_char(','); put("\""); decode_string(begin, end); put("\"");        }
   virtual void do_ulong(unsigned long long &i)   override { queue_char(','); put(i);                            }
   virtual void do_long(long long &i)             override { queue_char(','); put(i);                            }
   virtual void do_float(float &f)                override { queue_char(','); put(f);                            }
@@ -244,15 +244,15 @@ struct JsonDeserializer : public IDeserializer {
         }
         else if(c == '\\') {
             _p++;
-            c = *_p;
+            c = *_p; //character after the '\'
             switch(c) {
-                case '\\': *s++ = '\\'; break;
-                case '/': *s++ = '/'; break;
-                case 'n':  *s++ = '\n'; break;
-                case 'r':  *s++ =  '\r'; break;
-                case 'b':  *s++ = '\b'; break;
-                case 'f':  *s++ = '\f'; break;
-                case 't':  *s++ = '\t'; break;
+                case '\\': *s = '\\'; break;
+                case '/':  *s = '/'; break;
+                case 'n':  *s = '\n'; break;
+                case 'r':  *s =  '\r'; break;
+                case 'b':  *s = '\b'; break;
+                case 'f':  *s = '\f'; break;
+                case 't':  *s = '\t'; break;
                 case 'u':
                     expect('0');
                     expect('0');
