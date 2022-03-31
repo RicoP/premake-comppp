@@ -25,24 +25,17 @@ struct JsonSerializer : public ISerializer {
   void put(unsigned long long l) { fprintf(file, "%llu", l);                  }
   void print_indent()       { put("\n", whitespace + 128 - indent_depth * 2); }
 
-  bool is_ascii(char c) {
+  bool is_printable(char c) {
+    return (c >= ' ' && c <= '~');
+  }
+
+  bool is_simple_printable(char c) {
     switch(c) {
-    case '!': case '#': case '$': case '%': case '&': case '\'': case '(': case ')': case '~':
-    case '*': case '+': case ',': case '-': case '.': case '0': case '1': case '2': case '3':
-    case '4': case '5': case '6': case '7': case '8': case '9': case ':': case ';': case '<':
-    case '=': case '>': case '?': case '@': case '[': case ']': case '^': case '_': case '`':
-    case 'a': case 'A': case 'b': case 'B': case 'c': case 'C': case 'd': case 'D': case 'e':
-    case 'E': case 'f': case 'F': case 'g': case 'G': case 'h': case 'H': case 'i': case 'I':
-    case 'J': case 'j': case 'k': case 'K': case 'l': case 'L': case 'm': case 'M': case 'n':
-    case 'N': case 'O': case 'o': case 'p': case 'P': case 'Q': case 'q': case 'r': case 'R':
-    case 's': case 'S': case 't': case 'T': case 'u': case 'U': case 'V': case 'v': case 'w':
-    case 'W': case 'x': case 'X': case 'y': case 'Y': case 'z': case 'Z': case '{': case '|': 
-    case '}': case ' ':
-        return true;
-    default:
-    case '"': case '/': case '\\':
-        return false;
+	//This characters need special attention
+    case '"': case '/': case '\\': return false;
+    default: break;
     }
+    return is_printable(c);
   }
 
   void print_zeros(size_t leading_zeros) {
@@ -63,7 +56,7 @@ struct JsonSerializer : public ISerializer {
         print_zeros(leading_zeros);
         leading_zeros = 0;
 
-        if(is_ascii(c)) put(c);
+        if(is_simple_printable(c)) put(c);
         else {
             switch(c) {
                 case '\n': put("\\n"); break;
@@ -75,7 +68,7 @@ struct JsonSerializer : public ISerializer {
                 case '\t': put("\\t"); break;
                 case '\"': put("\\\""); break;
                 default:
-                    printf("\\u00%02X", c); break;
+                    fprintf(file, "\\u00%02X", (unsigned)c); break;
             }
         }
       }
