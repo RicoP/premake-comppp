@@ -1,7 +1,7 @@
 #pragma once
 
 #include "serializer.h"
-#include <game/util/mathhelper.h>
+#include <engine/util/mathhelper.h>
 
 struct ImguiSerializer : public ISerializer {
   rose::hash_value _type_hash = 0;
@@ -10,7 +10,7 @@ struct ImguiSerializer : public ISerializer {
   char _array_full_name[128] = {0};
   int depth = 0;
 
-  virtual bool custom_type(const char *type, rose::hash_value type_hash, void *p) {
+  virtual bool custom_type(const char */*type*/, rose::hash_value /*type_hash*/, void* /*p*/) {
     return false;
   }
 
