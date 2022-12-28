@@ -112,6 +112,16 @@ namespace ecs {
     c = str[0];
   }
 
+  inline void serialize(unsigned char& c, ISerializer& s) {
+    int i = c;
+    serialize(i, s);    
+  }
+  inline void deserialize(unsigned char& c, IDeserializer& d) {
+    int i = 0;
+    deserialize(i, d);
+    c = (unsigned char)i;
+  }
+
   inline void randomize(float &o, rose::hash_value &h) {
     rose::next(h);
     o = (((int)(h % 400)) - 200) * .5f;
