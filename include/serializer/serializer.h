@@ -191,7 +191,9 @@ namespace ecs {
   template <class T>
   inline void serialize(std::vector<T> & v, ISerializer& s) {
     if (s.begin_array()) {
+      size_t i = 0;
       for (auto & o : v) {
+        s.in_array(i++);
         serialize(o, s);
       }
       s.end_array();

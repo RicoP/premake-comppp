@@ -6,9 +6,11 @@
 struct ImguiSerializer : public ISerializer {
   rose::hash_value _type_hash = 0;
   const char* _key_name = 0;
-  const char* _array_key = 0;
   char _array_full_name[128] = {0};
   int depth = 0;
+  
+  const char * _array_name_stack[128] = {0};
+  int _array_depth = -1;
 
   virtual bool custom_type(const char */*type*/, rose::hash_value /*type_hash*/, void* /*p*/) {
     return false;
@@ -31,9 +33,21 @@ struct ImguiSerializer : public ISerializer {
   }
 
   virtual void key(const char *name) override { _key_name = name; }
-  virtual bool begin_array() override { _array_key = _key_name; return ImGui::TreeNode(_key_name); }
-  virtual void in_array(size_t iz) override { sprintf(_array_full_name, "%s[%d]", _array_key, (int)iz); _key_name = _array_full_name; }
-  virtual void end_array() override { _key_name = 0; ImGui::TreePop(); }
+  
+  virtual bool begin_array() override { 
+    if (ImGui::TreeNode(_key_name)) {
+        _array_name_stack[++_array_depth] = _key_name;
+        return true;
+    }
+    return false;
+  }
+  virtual void in_array(size_t iz) override { 
+    sprintf(_array_full_name, "%s[%d]", _array_name_stack[_array_depth], (int)iz); _key_name = _array_full_name; 
+  }
+  virtual void end_array() override {
+    --_array_depth;
+    ImGui::TreePop();
+  }
   virtual void write_enum(const char *) override {}
   virtual void end_enum() override {}
   virtual void do_string(char *begin, char *end) override {
