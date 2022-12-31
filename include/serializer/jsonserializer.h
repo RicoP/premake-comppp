@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <cfloat>
 
 #include "serializer.h"
 
@@ -19,10 +20,38 @@ struct JsonSerializer : public ISerializer {
   void put(const char* str) { fprintf(file, "%s", str);                       }
   void put(    long long l) { fprintf(file, "%lld", l);                       }
   void put(      char* str) { fprintf(file, "%s", str);                       }
-  void put(        float f) { fprintf(file, "%g", f);                         }
   void put(         char c) { fputc(c, file);                                 }
   void put(          int i) { fprintf(file, "%d", i);                         }
   void put(unsigned long long l) { fprintf(file, "%llu", l);                  }
+  void put(        float f) { 
+    if(f == 0) {
+      //Special case because float can be both +0 and -0
+      fputc('0', file);
+      return;
+    }
+    
+    //Pretty Print float with double precission and cut of trailing zeros.
+    char buffer[128];
+    //https://stackoverflow.com/a/19897395
+    sprintf(buffer, "%.*f", DBL_DECIMAL_DIG - 1, (double)f); 
+    int last_non_zero_index = 0;
+    int dot_index = 0;
+
+    int i = 0;
+    while(buffer[i]) {
+      if(buffer[i] == '.') dot_index = i;
+      if(buffer[i] != '0') last_non_zero_index = i;
+
+      ++i;
+    }
+
+    if(dot_index > 0) {
+      if(dot_index == last_non_zero_index) buffer[dot_index] = 0;
+      else if(last_non_zero_index > dot_index) buffer[last_non_zero_index + 1] = 0;
+    }
+
+    fprintf(file, "%s", buffer); 
+  }
   void print_indent()       { put("\n", whitespace + 128 - indent_depth * 2); }
 
   bool is_printable(char c) {
