@@ -138,12 +138,34 @@ struct JsonSerializer : public ISerializer {
 };
 
 struct JsonDeserializer : public IDeserializer {
-  char* _p = 0;
+  char* owned_buffer = nullptr;
+  char* _p = nullptr;
   hash _name_hash = 0;
   bool enum_started = false;
 
+  JsonDeserializer(FILE * f) {
+    auto head = ftell(f);
+    fseek(f, 0, SEEK_END);
+    auto memsize = ftell(f) - head;
+    fseek(f, head, SEEK_SET);
+
+    char* buffer = new char[memsize + 1];
+    fread(buffer, memsize, 1, f);
+    buffer[memsize] = 0;
+    fseek(f, head, SEEK_SET);
+
+    _p = buffer;
+  }
+
   JsonDeserializer(char* json) {
     _p = json;
+  }
+
+  ~JsonDeserializer() {
+    if (owned_buffer) {
+      delete owned_buffer;
+      owned_buffer = nullptr;
+    }
   }
 
   bool is_whitespace(char c) {
