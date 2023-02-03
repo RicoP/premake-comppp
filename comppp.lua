@@ -187,8 +187,6 @@ function execute()
 
     if not include then
       assert(fieldsUnsorted["entity"] == nil, "can't have a field called entity")
-      -- TODO put this back in for ECS
-      -- fieldsUnsorted["entity"] = {"rose::ecs::Entity"}
     end
 
     local fields = {}
@@ -217,7 +215,6 @@ function execute()
     write('#pragma once                                                       ')
     write('#include <components/computils.h>                                  ')
     write('#include <serializer/serializer.h>                                 ')
-    write('#include <rose/ecs.h>                                              ')
     write('#include <cstring>                                                 ')
     write('                                                                   ')
 
@@ -231,7 +228,6 @@ function execute()
 
     if include == nil then
       write('namespace rose {                                                   ')
-      write('namespace ecs {                                                    ')
       write("struct " .. struct .. " {")
       for i=1,#fields do
         local name = fields[i][1]
@@ -309,7 +305,6 @@ function execute()
       write("#include <" .. include .. ">")
       write("")
       write('namespace rose {                                                   ')
-      write('namespace ecs {                                                    ')
     end
 
     --ENUM OPERATOS
@@ -418,16 +413,11 @@ function execute()
     write('}                                                                  ')
 
 
-    write('} //namespace ecs ')
     write('')
     write('///////////////////////////////////////////////////////////////////')
     write('// hashing                                                       //')
     write('///////////////////////////////////////////////////////////////////')
-    if include then
-      write('  inline hash_value hash(const '.. struct ..' &o) {     ')
-    else 
-      write('  inline hash_value hash(const ecs::'.. struct ..' &o) {     ')
-    end
+    write('  inline hash_value hash(const '.. struct ..' &o) {     ')
     write_nonl('    hash_value h =                                ')
     for i=1,#fields do
       local name = fields[i][1]
@@ -505,10 +495,9 @@ function create_world(name, comps)
   for k,name in pairs(comps) do
     write("#include <game/components/" .. name:lower() .. ".h> ")
   end
-  write("#include <rose/ecs.h>                                                                             ")
   write("#include <vector>                                                                             ")
   write("")
-  write("struct World : rose::ecs::World {                                                                        ")
+  write("struct World : rose::World {                                                                        ")
   write("")
   write("  //component indice                                                                                ")
   for k,name in pairs(comps) do
@@ -518,62 +507,6 @@ function create_world(name, comps)
   write("")
   for k,name in pairs(comps) do
     write("  std::vector<" .. name .. "> " .. pluralize(name) .. "; ")
-  end
-
-  write("")
-  write("  rose::ecs::Entity create_entity() {                      ")
-  write("    // Assuming arrays have no holes                       ")
-  write("    int index = entities.size();                           ")
-  write("    rose::ecs::Entity& entity = entities.emplace_back();   ")
-  write("    entity.generation = ~0;                                ")
-  write("    entity.index = index;                                  ")
-  write("    generation.push_back(entity.generation);               ")
-  write("    status.push_back(rose::ecs::Entity::Status::Alive);    ")
-  write("")
-  for k,name in pairs(comps) do
-    local lname = name:lower()
-    local names = pluralize(name)
-    local name_index = lname .. "_index"
-    write("    " .. name_index .. ".push_back(-1);                  ")
-  end
-  write("")
-  write("    return entity;                                         ")
-  write("  }")
-
-  write("")
-  write("  //TODO: implement systems                                                        ")
-  write("  //WorldSystem worlsSystem;                                                       ")
-  write("  //RenderSystem renderSystem;                                                     ")
-  write("                                                                                   ")
-  write("  //Component getter                                                               ")
-  write("  template<typename T>                                                             ")
-  write("  T & get(rose::ecs::Entity entity); //Not implemented -> unknown type             ")
-  write("  template<typename T>                                                             ")
-  write("  const T & get(rose::ecs::Entity entity) const; //Not implemented -> unknown type ")
-  write("  template <typename T>                                                            ")
-  write("  T& attach_component(rose::ecs::Entity entity);                                   ")
-  write("};")
-  write("")
-
-  for k,name in pairs(comps) do
-    if is_primitive(name) then goto continue end
-    local lname = name:lower()
-    local names = pluralize(name)
-    local name_index = lname .. "_index"
-    write("// template specialization " .. name)
-    write("template <> [[nodiscard]] inline " .. name .. "& World::attach_component<" .. name .. ">(rose::ecs::Entity entity) { ")
-    write("  return attach_component_to_is_vector(" .. name_index .. ", " .. names .. ", entity);                                  ")
-    write("}                                                                                                                    ")
-    write("")
-    write("template <> [[nodiscard]] inline const " .. name .. "& World::get<" .. name .. ">(rose::ecs::Entity entity) const {  ")
-    write("  return get_component(" .. name_index .. ", " .. names .. ", entity);                                               ")
-    write("}                                                                                                                    ")
-    write("")
-    write("template <> [[nodiscard]] inline " .. name .. "& World::get<" .. name .. ">(rose::ecs::Entity entity) {              ")
-    write("  return get_component(" .. name_index .. ", " .. names .. ", entity);                                               ")
-    write("}                                                                                                                    ")
-    write("")
-    ::continue::
   end
 end
 

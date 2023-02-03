@@ -67,7 +67,6 @@ class ISerializer {
 };
 
 namespace rose {
-namespace ecs {
 
   template <size_t N>
   inline void serialize(rose::string<N> &o, ISerializer &s, size_t max = N) {
@@ -238,6 +237,4 @@ namespace ecs {
   inline void construct_defaults(rose::vectorPOD<N, T> &o) {
     o.size = 0;
   }
-
-}  // namespace ecs
 }  // namespace rose
