@@ -4,7 +4,7 @@
 #include "imgui.h"
 
 struct ImguiSerializer : public ISerializer {
-  rose::hash_value _type_hash = 0;
+  RHash _type_hash = 0;
   const char* _key_name = 0;
   char _array_full_name[128] = {0};
   int depth = 0;
@@ -12,11 +12,11 @@ struct ImguiSerializer : public ISerializer {
   const char * _array_name_stack[128] = {0};
   int _array_depth = -1;
 
-  virtual bool custom_type(const char */*type*/, rose::hash_value /*type_hash*/, void* /*p*/) {
+  virtual bool custom_type(const char */*type*/, RHash /*type_hash*/, void* /*p*/) {
     return false;
   }
 
-  virtual bool node_begin(const char *type, rose::hash_value type_hash,
+  virtual bool node_begin(const char *type, RHash type_hash,
                           void *p) override {
     assert(rose::hash(type) == type_hash);
 

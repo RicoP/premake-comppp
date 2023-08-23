@@ -351,7 +351,7 @@ function execute()
         write('}                                                                                             ')
         write('')
 
-        write('inline void randomize(' .. E .. ' &o, rose::hash_value & h) {                                                       ')
+        write('inline void randomize(' .. E .. ' &o, RHash & h) {                                                       ')
         write('  h = rose::xor64(h); ')
         write('  o = ' .. E .. '::None;                                                                      ')
         write('  switch(h % ' .. #enum_member .. ') {                                                        ')
@@ -405,7 +405,7 @@ function execute()
     write('///////////////////////////////////////////////////////////////////')
     write('// randomize                                                     //')
     write('///////////////////////////////////////////////////////////////////')
-    write('inline void randomize('.. struct ..' &o, rose::hash_value & h) {    ')
+    write('inline void randomize('.. struct ..' &o, RHash & h) {    ')
     for i,field in pairs(fields) do
       local name = field[1]
       write('  randomize(o.'.. name ..', h);                                  ')
@@ -417,8 +417,8 @@ function execute()
     write('///////////////////////////////////////////////////////////////////')
     write('// hashing                                                       //')
     write('///////////////////////////////////////////////////////////////////')
-    write('  inline hash_value hash(const '.. struct ..' &o) {     ')
-    write_nonl('    hash_value h =                                ')
+    write('  inline RHash hash(const '.. struct ..' &o) {     ')
+    write_nonl('    RHash h =                                ')
     for i=1,#fields do
       local name = fields[i][1]
       local valtype = fields[i][2]

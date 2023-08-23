@@ -16,18 +16,16 @@ inline bool operator==(const rose::string<N> &lhs, const rose::string<M> &rhs) {
 }
 
 template <size_t N>
-hash_value hash(string<N> s) {
+RHash hash(string<N> s) {
   return hash_fnv(s.data, s.data + N);
 }
 }  // namespace rose
 
 class IDeserializer {
  public:
-  typedef rose::hash_value hash;
-
   virtual bool next_key() = 0;
   virtual void skip_key() = 0;
-  virtual hash hash_key() = 0;
+  virtual RHash hash_key() = 0;
 
   virtual bool in_array() = 0;
 
@@ -43,7 +41,7 @@ class IDeserializer {
 
 class ISerializer {
  public:
-  virtual bool node_begin(const char *name, rose::hash_value name_hash, void *) = 0;
+  virtual bool node_begin(const char *name, RHash name_hash, void *) = 0;
 
   virtual void key(const char *) = 0;
 
@@ -121,33 +119,33 @@ namespace rose {
     c = (unsigned char)i;
   }
 
-  inline void randomize(float &o, rose::hash_value &h) {
+  inline void randomize(float &o, RHash &h) {
     rose::next(h);
     o = (((int)(h % 400)) - 200) * .5f;
   }
 
-  inline void randomize(int &o, rose::hash_value &h) {
+  inline void randomize(int &o, RHash &h) {
     rose::next(h);
     o = (int)(h % 100);
   }
 
-  inline void randomize(long long &o, rose::hash_value &h) {
+  inline void randomize(long long &o, RHash &h) {
     rose::next(h);
     o = (long long)(h % 100);
   }
 
-  inline void randomize(unsigned long long &o, rose::hash_value &h) {
+  inline void randomize(unsigned long long &o, RHash &h) {
     rose::next(h);
     o = (unsigned long long)(h % 100);
   }
 
-  inline void randomize(bool &o, rose::hash_value &h) {
+  inline void randomize(bool &o, RHash &h) {
     rose::next(h);
     o = h % 2 == 0;
   }
 
   template <size_t N, class T>
-  inline void randomize(rose::vectorPOD<N, T> &o, rose::hash_value &h) {
+  inline void randomize(rose::vectorPOD<N, T> &o, RHash &h) {
     size_t length = h % N;
     o.size = length;
     for (size_t i = 0; i != length; ++i) {
@@ -156,14 +154,14 @@ namespace rose {
   }
 
   template <size_t N, class T>
-  inline void randomize(T (&o)[N], rose::hash_value &h) {
+  inline void randomize(T (&o)[N], RHash &h) {
     for (size_t i = 0; i != N; ++i) {
       randomize(o[i], h);
     }
   }
 
   template <size_t N>
-  inline void randomize(rose::string<N> &o, rose::hash_value &h) {
+  inline void randomize(rose::string<N> &o, RHash &h) {
     rose::next(h);
 
     std::memset(o.data, 0, N);

@@ -116,7 +116,7 @@ struct JsonSerializer : public ISerializer {
     queued[indent_depth] = c;
   }
 
-  virtual bool node_begin(const char *, rose::hash_value, void *) override { queue_char(',');      indent(); put("{");                return true; }
+  virtual bool node_begin(const char *, RHash, void *) override { queue_char(',');      indent(); put("{");                return true; }
 
   virtual void key(const char* name)     override { queue_char(',');             print_indent();  put("\"", name, "\" : "); clear(); }
   virtual bool begin_array()             override { queue_char(',');   indent();                  put("[");                          return true; }
@@ -140,7 +140,7 @@ struct JsonSerializer : public ISerializer {
 struct JsonDeserializer : public IDeserializer {
   char* owned_buffer = nullptr;
   char* _p = nullptr;
-  hash _name_hash = 0;
+  RHash _name_hash = 0;
   bool enum_started = false;
 
   JsonDeserializer(FILE * f) {
@@ -225,7 +225,7 @@ struct JsonDeserializer : public IDeserializer {
       ++_p;
   }
 
-  virtual hash hash_key() override { return _name_hash; }
+  virtual RHash hash_key() override { return _name_hash; }
 
   virtual bool next_key() override {
     char c = current();
